@@ -1,0 +1,2292 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Overdracht Assistentie EMG</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --surface2: #1f1f1f;
+      --border: #2a2a2a;
+      --text: #f0f0f0;
+      --text-muted: #888;
+      --accent: #e8500a;
+      --accent-hover: #c94008;
+      --accent-light: rgba(232,80,10,0.12);
+      --danger: #e84040;
+      --success: #2ecc71;
+      --shadow: 0 2px 16px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
+      --radius: 4px;
+    }
+    body.light-mode {
+      --bg: #f2f0ec;
+      --surface: #ffffff;
+      --surface2: #f7f5f2;
+      --border: #ddd9d0;
+      --text: #1a1916;
+      --text-muted: #7a7570;
+      --accent: #e8500a;
+      --accent-hover: #c94008;
+      --accent-light: rgba(232,80,10,0.08);
+      --danger: #c03030;
+      --success: #2a7a4a;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+    }
+    body.light-mode .login-screen {
+      background-image: repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(0,0,0,0.025) 60px, rgba(0,0,0,0.025) 61px),
+                        repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(0,0,0,0.025) 60px, rgba(0,0,0,0.025) 61px);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── LOGIN ── */
+    .login-screen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: var(--bg);
+      background-image: repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255,255,255,0.012) 60px, rgba(255,255,255,0.012) 61px),
+                        repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255,255,255,0.012) 60px, rgba(255,255,255,0.012) 61px);
+    }
+    .login-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
+      padding: 52px 44px; width: 100%; max-width: 420px;
+      box-shadow: var(--shadow-lg); animation: popIn 0.2s ease;
+    }
+    .login-logo {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem; font-weight: 700; color: var(--accent);
+      letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px;
+    }
+    .login-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 2rem; font-weight: 800; color: var(--text);
+      letter-spacing: 0px; margin-bottom: 6px; line-height: 1.1;
+    }
+    .login-sub { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 36px; font-weight: 300; }
+    .login-error {
+      background: rgba(232,64,64,0.1); border-left: 3px solid var(--danger);
+      color: #ff8080; padding: 10px 14px; font-size: 0.85rem;
+      margin-bottom: 18px; display: none;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 32px; display: flex; align-items: center; justify-content: space-between;
+      height: 60px; position: sticky; top: 0; z-index: 100;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .logo-mark {
+      width: 32px; height: 32px; background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Inter', sans-serif; font-weight: 800; font-size: 0.75rem;
+      color: #fff; letter-spacing: 0.5px; flex-shrink: 0;
+    }
+    .logo-text {
+      font-family: 'Inter', sans-serif; font-weight: 700;
+      font-size: 1.1rem; color: var(--text); letter-spacing: 0px;
+    }
+    .logo-text span { color: var(--accent); }
+    .header-user { display: flex; align-items: center; gap: 10px; }
+    .header-naam { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+    .badge-admin {
+      background: var(--accent); color: #fff; font-size: 0.6rem; font-weight: 700;
+      padding: 2px 8px; letter-spacing: 1px; text-transform: uppercase;
+    }
+    .btn-admin-mode {
+      background: transparent; color: var(--accent); border: 1px solid var(--accent);
+      padding: 5px 14px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; cursor: pointer; font-family: inherit;
+      transition: all 0.15s;
+    }
+    .btn-admin-mode:hover { background: var(--accent); color: #fff; }
+    .btn-admin-mode.active { background: var(--success); border-color: var(--success); color: #fff; }
+    .btn-gebruikers {
+      background: transparent; color: var(--text-muted); border: 1px solid var(--border);
+      padding: 5px 14px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px;
+      text-transform: uppercase; cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .btn-gebruikers:hover { border-color: var(--text-muted); color: var(--text); }
+    .btn-theme {
+      background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+      width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1rem; transition: all 0.15s; flex-shrink: 0;
+    }
+    .btn-theme:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-logout {
+      background: transparent; color: var(--text-muted); border: 1px solid var(--border);
+      padding: 5px 14px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px;
+      text-transform: uppercase; cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* ── LAYOUT ── */
+    .layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 60px); }
+    aside {
+      background: var(--surface);
+      width: 100%;
+    }
+    .sidebar-wrapper {
+      background: var(--surface); border-right: 1px solid var(--border);
+      position: sticky; top: 60px;
+      height: calc(100vh - 60px); width: 100%;
+      display: flex; flex-direction: column;
+    }
+
+    .sidebar-nav {
+      display: flex; border-bottom: 1px solid var(--border);
+    }
+    .sidebar-nav-tab {
+      flex: 1; padding: 10px 6px; font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted);
+      background: none; border: none; cursor: pointer; font-family: inherit;
+      border-bottom: 2px solid transparent; transition: all 0.15s;
+      text-align: center;
+    }
+    .sidebar-nav-tab:hover { color: var(--text); background: var(--surface2); }
+    .sidebar-nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .sidebar-tab-content { display: none; }
+    .sidebar-tab-content.active { display: block; }
+    .opleidingen-placeholder {
+      padding: 32px 20px; text-align: center; color: var(--text-muted);
+      font-size: 0.8rem; line-height: 1.6;
+    }
+    .sidebar-group { margin-bottom: 2px; }
+    .sidebar-group-label {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent);
+      padding: 10px 16px 10px 16px; display: flex; align-items: center; gap: 8px;
+      cursor: pointer; user-select: none; transition: background 0.12s;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-group-label:hover { background: var(--accent-light); }
+    .sidebar-group-label .groep-chevron {
+      margin-left: auto; font-size: 0.6rem; color: var(--text-muted);
+      transition: transform 0.2s ease; flex-shrink: 0;
+    }
+    .sidebar-group.open .groep-chevron { transform: rotate(180deg); }
+    .sidebar-group-label .groep-count {
+      font-size: 0.65rem; background: var(--surface2); color: var(--text-muted);
+      padding: 1px 6px; border-radius: 99px; font-weight: 600;
+    }
+    .sidebar-group-items { padding: 0 10px; margin-bottom: 4px; display: none; }
+    .sidebar-group.open .sidebar-group-items { display: block; }
+    .collega-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; cursor: pointer; transition: background 0.12s;
+      font-size: 0.875rem; font-weight: 400;
+    }
+    .collega-item:hover { background: var(--surface2); }
+    .collega-item.active { background: var(--accent-light); color: var(--text); border-left: 2px solid var(--accent); padding-left: 8px; }
+    .collega-avatar {
+      width: 28px; height: 28px; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--accent); display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; flex-shrink: 0; letter-spacing: 0.5px;
+    }
+    .collega-item.active .collega-avatar { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .collega-count {
+      margin-left: auto; background: var(--surface2); color: var(--text-muted);
+      font-size: 0.68rem; padding: 1px 7px; font-weight: 600;
+    }
+    .sidebar-empty-group { padding: 4px 20px 8px; font-size: 0.78rem; color: var(--text-muted); }
+    .sidebar-zoek-wrapper {
+      padding: 12px 12px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-zoek {
+      width: 100%; padding: 7px 10px 7px 32px;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); font-size: 0.8rem; font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    .sidebar-zoek:focus { outline: none; border-color: var(--accent); }
+    .sidebar-zoek::placeholder { color: var(--text-muted); }
+    .sidebar-zoek-wrapper { position: relative; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .sidebar-zoek-wrapper svg { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .btn-add-collega { background: var(--surface) !important;
+      display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+      cursor: pointer; font-size: 0.8rem; color: var(--text-muted);
+      border: none; border-top: 1px solid var(--border);
+      width: 100%; transition: color 0.15s, background 0.15s;
+      font-family: inherit; margin-top: 10px; font-weight: 600;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .btn-add-collega:hover { color: var(--accent); background: var(--accent-light) !important; }
+
+    /* ── MAIN ── */
+    main { padding: 32px 40px; width: 100%; }
+    .main-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+    .main-title {
+      font-family: 'Inter', sans-serif; font-size: 2.2rem; font-weight: 700;
+      color: var(--text); letter-spacing: -0.5px; line-height: 1;
+    }
+    .main-subtitle {
+      color: var(--text-muted); font-size: 0.82rem; margin-top: 5px;
+      text-transform: uppercase; letter-spacing: 1px; font-weight: 500;
+    }
+    .header-count { color: var(--text-muted); font-size: 0.8rem; }
+
+    /* ── KNOPPEN ── */
+    .btn-primary {
+      background: var(--accent); color: #fff; border: none; padding: 10px 20px;
+      font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex;
+      align-items: center; gap: 8px; transition: background 0.15s;
+      font-family: inherit; white-space: nowrap; letter-spacing: 1px; text-transform: uppercase;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary {
+      background: transparent; color: var(--text); border: 1px solid var(--border);
+      padding: 9px 16px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+      font-family: inherit; transition: all 0.15s; letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .btn-secondary:hover { border-color: var(--text-muted); }
+    .btn-danger-outline {
+      background: transparent; border: 1px solid var(--danger); color: var(--danger);
+      padding: 9px 16px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: all 0.15s; white-space: nowrap;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .btn-danger-outline:hover { background: rgba(232,64,64,0.1); }
+    .btn-danger {
+      background: none; border: none; color: var(--danger); cursor: pointer;
+      font-size: 0.78rem; font-family: inherit; padding: 4px 10px;
+      transition: background 0.15s; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .btn-danger:hover { background: rgba(232,64,64,0.1); }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid transparent;
+      padding: 20px 24px; margin-bottom: 10px;
+      transition: border-color 0.15s, box-shadow 0.15s; animation: slideIn 0.2s ease;
+    }
+    .card:hover { border-left-color: var(--border); }
+    .card.open { border-left-color: var(--accent); }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card-klap { cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .klus-naam { font-weight: 700; font-size: 0.95rem; color: var(--text); letter-spacing: 0.3px; }
+    .klus-naam.leeg { color: var(--text-muted); font-weight: 400; }
+    .card-klap:hover .klus-naam { color: var(--accent); }
+    .card-chevron { width: 16px; height: 16px; flex-shrink: 0; color: var(--text-muted); transition: transform 0.2s ease; }
+    .card.open .card-chevron { transform: rotate(180deg); color: var(--accent); }
+    .card-body { display: none; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px; }
+    .card.open .card-body { display: block; }
+
+    .card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+    .card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .card-author { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; }
+    .card-date { font-size: 0.75rem; color: var(--text-muted); }
+    .card-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .card-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 14px; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); }
+    .field-value { font-size: 0.875rem; color: var(--text); font-weight: 500; }
+    .field-value.empty { color: var(--text-muted); font-style: italic; font-weight: 400; }
+    .card-notes {
+      background: var(--surface2); border-left: 2px solid var(--border);
+      padding: 12px 16px; font-size: 0.875rem; line-height: 1.7;
+      color: var(--text-muted); margin-bottom: 10px; white-space: pre-wrap; font-weight: 300;
+    }
+
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; }
+    .badge-opvolging { background: rgba(255,180,0,0.12); color: #f0a500; border: 1px solid rgba(255,180,0,0.25); }
+    .badge-ok { background: rgba(46,204,113,0.1); color: var(--success); border: 1px solid rgba(46,204,113,0.2); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 14px; opacity: 0.4; }
+    .empty-state h3 { font-family: 'Inter', sans-serif; font-size: 1.4rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text); margin-bottom: 8px; }
+
+    /* ── ZOEK ── */
+    .zoekbalk-wrapper { position: relative; margin-bottom: 20px; }
+    .zoekbalk-wrapper svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .zoekbalk {
+      width: 100%; padding: 11px 14px 11px 42px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font-size: 0.875rem;
+      font-family: inherit; transition: border-color 0.15s;
+    }
+    .zoekbalk:focus { outline: none; border-color: var(--accent); }
+    .zoekbalk::placeholder { color: var(--text-muted); }
+    .zoek-info { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px; margin-top: -10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .highlight { background: rgba(232,80,10,0.25); color: var(--accent); padding: 0 2px; font-weight: 700; }
+
+    /* ── GEBRUIKERSBEHEER ── */
+    .gebruiker-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .gebruiker-row:last-child { border-bottom: none; }
+    .gebruiker-naam { font-weight: 600; font-size: 0.9rem; }
+    .gebruiker-rol { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    /* ── MODAL ── */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px); animation: fadeIn 0.15s;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
+      padding: 32px; width: 100%; max-width: 560px;
+      box-shadow: var(--shadow-lg); animation: popIn 0.18s ease; max-height: 90vh; overflow-y: auto;
+    }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.97) translateY(6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .modal-title {
+      font-family: 'Inter', sans-serif; font-size: 1.5rem; font-weight: 700;
+      letter-spacing: 0px; margin-bottom: 24px; color: var(--text);
+    }
+
+    .form-row { margin-bottom: 18px; }
+    .form-label {
+      display: block; font-size: 0.62rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 7px;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text); font-size: 0.9rem;
+      font-family: inherit; transition: border-color 0.15s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent); }
+    .form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
+    .form-select option { background: var(--surface2); }
+    .form-textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 28px; }
+    .checkbox-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .checkbox-row input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+    .checkbox-row label { font-size: 0.875rem; cursor: pointer; font-weight: 500; }
+
+
+    /* ── MOBIEL SIDEBAR TOGGLE ── */
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 150; backdrop-filter: blur(2px);
+    }
+    .sidebar-overlay.open { display: block; }
+    .btn-menu {
+      display: none; background: none; border: none; color: var(--text);
+      cursor: pointer; padding: 4px; font-size: 1.3rem; line-height: 1;
+    }
+    .sidebar-close {
+      display: none; position: absolute; top: 12px; right: 12px;
+      background: none; border: none; color: var(--text-muted);
+      cursor: pointer; font-size: 1.2rem; padding: 4px;
+    }
+
+    /* ── TABLET (max 1024px) ── */
+    @media (max-width: 1024px) {
+      header { padding: 0 20px; }
+      .logo-text { font-size: 0.95rem; }
+      .header-naam { display: none; }
+      main { padding: 24px 20px; }
+      .main-title { font-size: 1.6rem; }
+    }
+
+    /* ── MOBIEL (max 768px) ── */
+    @media (max-width: 768px) {
+      header { padding: 0 16px; height: 54px; gap: 8px; }
+      .btn-menu { display: flex; align-items: center; }
+      .logo-mark { width: 28px; height: 28px; font-size: 0.65rem; }
+      .logo-text { font-size: 0.85rem; }
+      .badge-admin { display: none; }
+      .btn-admin-mode { font-size: 0.65rem; padding: 4px 8px; letter-spacing: 0.5px; }
+      .btn-gebruikers { display: none; }
+      .btn-logout { font-size: 0.65rem; padding: 4px 8px; letter-spacing: 0; }
+      .btn-theme { width: 30px; height: 30px; font-size: 0.9rem; }
+
+      /* Sidebar als slide-over op mobiel */
+      .layout { grid-template-columns: 1fr; }
+      .sidebar-wrapper {
+        position: fixed; top: 54px; left: -100%; width: 280px;
+        height: calc(100vh - 54px); z-index: 160;
+        transition: left 0.25s ease; box-shadow: var(--shadow-lg);
+      }
+      .sidebar-wrapper.open { left: 0; }
+      .sidebar-close { display: block; }
+
+      main { padding: 20px 16px; }
+      .main-header { flex-direction: column; gap: 12px; align-items: stretch; }
+      .main-header > div:last-child { display: flex; flex-wrap: wrap; gap: 6px; }
+      .main-title { font-size: 1.4rem; }
+      .main-subtitle { font-size: 0.75rem; }
+
+      .btn-primary { font-size: 0.72rem; padding: 9px 14px; }
+      .btn-secondary { font-size: 0.72rem; padding: 7px 10px; }
+      .btn-danger-outline { font-size: 0.68rem; padding: 7px 10px; }
+
+      .card { padding: 16px; }
+      .card-fields { grid-template-columns: 1fr 1fr; }
+      .klus-naam { font-size: 0.875rem; }
+
+      .zoekbalk { font-size: 0.85rem; }
+      .form-grid { grid-template-columns: 1fr; }
+
+      .modal { padding: 24px 20px; }
+      .modal-title { font-size: 1.2rem; }
+    }
+
+    /* ── KLEIN MOBIEL (max 400px) ── */
+    @media (max-width: 400px) {
+      .btn-admin-mode { display: none; }
+      .card-fields { grid-template-columns: 1fr; }
+      .login-card { padding: 36px 24px; }
+    }
+
+    .opleiding-view-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent); padding: 28px 32px;
+    }
+    .opleiding-view-label {
+      font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--accent); margin-bottom: 5px;
+    }
+    .opleiding-view-value {
+      font-size: 0.9rem; color: var(--text); font-weight: 500; margin-bottom: 20px;
+    }
+    .opleiding-view-value.leeg { color: var(--text-muted); font-style: italic; font-weight: 400; }
+    .opleiding-view-notes {
+      background: var(--surface2); border-left: 2px solid var(--border);
+      padding: 14px 16px; font-size: 0.875rem; line-height: 1.7;
+      color: var(--text-muted); white-space: pre-wrap; font-weight: 300;
+    }
+    .opleiding-tag {
+      display: inline-flex; align-items: center; background: var(--accent-light);
+      color: var(--accent); border: 1px solid var(--accent);
+      font-size: 0.75rem; font-weight: 600; padding: 3px 10px; margin: 3px 3px 3px 0;
+    }
+    .card-opleiding {
+      background: rgba(232,80,10,0.08) !important;
+      border: 1px solid rgba(232,80,10,0.35) !important;
+      border-left: 3px solid var(--accent) !important;
+    }
+    body.light-mode .card-opleiding {
+      background: rgba(232,80,10,0.05) !important;
+    }
+    .hidden { display: none !important; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<!-- ── INLOGSCHERM ── -->
+<div id="loginScreen" class="login-screen">
+  <button class="btn-theme" id="btnThemeLogin" onclick="toggleTheme()" title="Wissel weergave" style="position:fixed;top:16px;right:20px;">🌙</button>
+  <div class="login-card">
+    <div class="login-logo">EMG / Gravity Media</div>
+    <div class="login-title">Overdracht<br>Assistentie</div>
+    <div class="login-sub">Log in om verder te gaan</div>
+    <div class="login-error" id="loginError">Onjuiste naam of wachtwoord.</div>
+    <div class="form-row">
+      <label class="form-label">Naam</label>
+      <select class="form-select" id="loginNaam">
+        <option value="">— Kies je naam —</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Wachtwoord</label>
+      <input class="form-input" type="password" id="loginWachtwoord" placeholder="••••••••" />
+    </div>
+    <button class="btn-primary" style="width:100%;justify-content:center;margin-top:8px;" onclick="login()">Inloggen</button>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="appScreen" class="hidden">
+  <header>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="btn-menu" id="btnMenu" onclick="toggleSidebar()">☰</button>
+      <div class="logo">
+        <div class="logo-mark">EMG</div>
+        <div class="logo-text">Overdracht <span>Assistentie</span></div>
+      </div>
+    </div>
+    <div class="header-user">
+      <div id="headerInfo" style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;"></div>
+      <span class="header-naam" id="headerNaam"></span>
+      <span class="badge-admin hidden" id="headerAdminBadge">Admin</span>
+      <button class="btn-admin-mode hidden" id="btnAdminMode" onclick="openAdminMode()">Admin Mode</button>
+      <button class="btn-gebruikers hidden" id="btnGebruikersBeheer" onclick="openGebruikersBeheer()">Gebruikers</button>
+      <a href="https://supabase.com/dashboard/project/rtpbnjhlukwgqkhvlfby" target="_blank" rel="noopener" title="Supabase" style="display:flex;align-items:center;color:var(--text-muted);opacity:0.7;transition:opacity 0.15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.9 1.036c-.015-.986-1.26-1.41-1.874-.637L.764 12.05C.111 12.886.697 14.08 1.762 14.08h10.138v8.887c.015.985 1.26 1.408 1.875.635l9.262-11.65c.653-.834.068-2.027-.997-2.027H11.9V1.036z"/></svg></a>
+      <a href="https://github.com/Ro-bin26/Assi-overdracht" target="_blank" rel="noopener" title="GitHub" style="display:flex;align-items:center;color:var(--text-muted);opacity:0.7;transition:opacity 0.15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg></a>
+      <button class="btn-theme" id="btnTheme" onclick="toggleTheme()" title="Wissel weergave">🌙</button>
+      <button class="btn-logout" onclick="logout()">Uitloggen</button>
+    </div>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <div class="layout">
+    <div class="sidebar-wrapper" id="sidebar">
+      <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+      <div class="sidebar-nav" style="flex-shrink:0;">
+        <button class="sidebar-nav-tab active" id="tabPersoneel" onclick="switchTab('persoonlijk')">Persoonlijke overdrachten</button>
+        <button class="sidebar-nav-tab" id="tabOpleidingen" onclick="switchTab('opleidingen')">Opleidingen</button>
+      </div>
+      <aside style="flex:1;overflow-y:auto;position:relative;">
+        <div class="sidebar-tab-content active" id="tabPersoonlijkContent">
+          <div class="sidebar-zoek-wrapper">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="sidebar-zoek" id="sidebarZoek" type="text" placeholder="Zoek naam…" oninput="filterSidebar()" />
+          </div>
+          <div id="collegaGroepen"></div>
+        </div>
+        <div class="sidebar-tab-content" id="tabOpleidingenContent">
+          <div class="sidebar-zoek-wrapper">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="sidebar-zoek" id="opleidingenZoek" type="text" placeholder="Zoek opleiding…" oninput="filterOpleidingen()" />
+          </div>
+          <div id="opleidingenLijst"></div>
+        </div>
+      </aside>
+      <button class="btn-add-collega" id="btnAddCollega" onclick="openAddCollega()">
+        <span>+</span> Collega toevoegen
+      </button>
+      <button class="btn-add-collega hidden" id="btnAddOpleiding" onclick="openAddOpleiding()">
+        <span>+</span> Opleiding toevoegen
+      </button>
+    </div>
+
+    <main>
+      <div class="main-header">
+        <div>
+          <div class="main-title" id="mainTitle">Selecteer een collega</div>
+          <div class="main-subtitle" id="mainSubtitle">Kies een collega in de zijbalk</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div id="headerInfo2" style="font-size:0.78rem;color:var(--text-muted);align-self:center;"></div>
+          <button class="btn-secondary hidden" id="btnFunctieWijzigen" onclick="openWijzigFunctie()" style="font-size:0.7rem;padding:6px 10px;">Functie wijzigen</button>
+          <button class="btn-secondary hidden" id="btnFilterOpleidingen" onclick="toggleOpleidingFilter()" style="font-size:0.7rem;padding:6px 10px;">Opleidingen</button>
+          <button class="btn-secondary hidden" id="btnNaamWijzigen" onclick="openWijzigNaam()" style="font-size:0.7rem;padding:6px 10px;">Naam wijzigen</button>
+          <button class="btn-danger-outline hidden" id="btnVerwijderMedewerker" onclick="openVerwijderMedewerker()" style="font-size:0.7rem;padding:6px 10px;align-self:stretch;">Verwijderen</button>
+          <button class="btn-primary hidden" id="btnNieuweOverdracht" onclick="openNieuweOverdracht()">+ Nieuwe overdracht</button>
+          <button class="btn-secondary hidden" id="btnBeheerOpleidingNamen" onclick="openBeheerOpleidingNamen()" style="font-size:0.8rem;padding:9px 16px;">⚙ Opleidingen beheren</button>
+        </div>
+      </div>
+      <div class="zoekbalk-wrapper hidden" id="zoekbalkWrapper">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="zoekbalk" id="zoekbalk" type="text" placeholder="Zoek op klus, projectmanager, notities…" oninput="filterOverdrachten()" />
+      </div>
+      <div class="zoek-info hidden" id="zoekInfo"></div>
+      <div id="overdrachtenContainer"></div>
+      <div id="opleidingView" class="hidden"></div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL: Overdracht -->
+<div class="modal-backdrop hidden" id="modalOverdracht">
+  <div class="modal">
+    <div class="modal-title" id="modalOverdrachtTitle">Nieuwe overdracht</div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label class="form-label">Klus</label>
+        <input class="form-input" id="fKlus" placeholder="Bijv. vervanging filter" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Datum klus</label>
+        <input class="form-input" type="date" id="fDatum" />
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Projectmanager</label>
+      <div style="display:flex;gap:8px;">
+        <select class="form-select" id="fPM" style="flex:1;"></select>
+        <button class="btn-secondary" onclick="openAddPM()" title="Projectmanager toevoegen" style="padding:10px 14px;">+</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Geschreven door</label>
+      <select class="form-select" id="fAuteur"></select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Functie</label>
+      <select class="form-select" id="fGegaanAls">
+        <option value="">— Kies een functie —</option>
+        <option value="Assistent">Assistent</option>
+        <option value="Assistent Leerling">Assistent Leerling</option>
+        <option value="Hoofd Assistent">Hoofd Assistent</option>
+        <option value="Hoofd Assistent Leerling">Hoofd Assistent Leerling</option>
+        <option value="Stagiair">Stagiair</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Beschrijving / notities</label>
+      <textarea class="form-textarea" id="fNotes" placeholder="Beschrijf de situatie, bijzonderheden, aandachtspunten…"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="checkbox-row">
+        <input type="checkbox" id="fOpvolging" />
+        <label for="fOpvolging">Opvolging vereist</label>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('modalOverdracht')">Annuleren</button>
+      <button class="btn-primary" onclick="saveOverdracht()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Collega toevoegen -->
+<div class="modal-backdrop hidden" id="modalCollega">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title">Collega toevoegen</div>
+    <div class="form-row">
+      <label class="form-label">Naam</label>
+      <input class="form-input" id="fCollegaNaam" placeholder="Volledige naam" oninput="document.getElementById('naamFout').style.display='none'" />
+      <div id="naamFout" style="display:none; color:var(--danger); font-size:0.78rem; margin-top:6px; font-weight:500;">⚠ Deze collega bestaat al.</div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Functie</label>
+      <select class="form-select" id="fCollegaFunctie" onchange="document.getElementById('functieFout').style.display='none'">
+        <option value="">— Kies een functie —</option>
+        <option value="Assistent">Assistent</option>
+        <option value="Technisch Assistent">Technisch Assistent</option>
+        <option value="Hoofd Assistent">Hoofd Assistent</option>
+        <option value="Stagiair">Stagiair</option>
+      </select>
+      <div id="functieFout" style="display:none; color:var(--danger); font-size:0.78rem; margin-top:6px; font-weight:500;">⚠ Kies een functie voor deze collega.</div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('modalCollega')">Annuleren</button>
+      <button class="btn-primary" onclick="saveCollega()">Toevoegen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Functie wijzigen -->
+<div class="modal-backdrop hidden" id="modalFunctie">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-title">Functie wijzigen</div>
+    <div class="form-row">
+      <label class="form-label">Nieuwe functie</label>
+      <select class="form-select" id="fNieuweFunctie">
+        <option value="">— Kies een functie —</option>
+        <option value="Assistent">Assistent</option>
+        <option value="Technisch Assistent">Technisch Assistent</option>
+        <option value="Hoofd Assistent">Hoofd Assistent</option>
+        <option value="Stagiair">Stagiair</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('modalFunctie')">Annuleren</button>
+      <button class="btn-primary" onclick="saveFunctieWijziging()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Naam wijzigen -->
+<div class="modal-backdrop hidden" id="modalNaam">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-title">Naam wijzigen</div>
+    <div class="form-row">
+      <label class="form-label">Nieuwe naam</label>
+      <input class="form-input" id="fNieuweNaam" placeholder="Volledige naam" />
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('modalNaam')">Annuleren</button>
+      <button class="btn-primary" onclick="saveNaamWijziging()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PM toevoegen -->
+<div class="modal-backdrop hidden" id="modalPM">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-title">Projectmanager toevoegen</div>
+    <div class="form-row">
+      <label class="form-label">Naam projectmanager</label>
+      <input class="form-input" id="fPMNaam" placeholder="Naam" oninput="document.getElementById('pmFout').style.display='none'" />
+      <div id="pmFout" style="display:none; color:var(--danger); font-size:0.78rem; margin-top:6px; font-weight:500;">⚠ Deze projectmanager bestaat al.</div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('modalPM')">Annuleren</button>
+      <button class="btn-primary" onclick="savePM()">Toevoegen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Verwijder overdracht -->
+<div class="modal-backdrop hidden" id="modalVerwijder">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-title">Overdracht verwijderen?</div>
+    <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:24px;">Dit kan niet ongedaan worden gemaakt.</p>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('modalVerwijder')">Annuleren</button>
+      <button class="btn-primary" style="background:var(--danger);" onclick="confirmVerwijder()">Verwijderen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Opleiding toevoegen/bewerken -->
+<div class="modal-backdrop hidden" id="modalOpleiding">
+  <div class="modal" style="display:flex;flex-direction:column;padding:0;max-height:90vh;">
+    <div style="padding:32px 32px 0;flex-shrink:0;"><div class="modal-title" id="modalOpleidingTitle">Opleiding toevoegen</div></div>
+    <div style="overflow-y:auto;flex:1;padding:0 32px 8px;">
+    <div class="form-row">
+      <label class="form-label">Naam opleiding</label>
+      <div style="display:flex;gap:8px;">
+        <select class="form-select" id="fOpleidingNaam" style="flex:1;">
+          <option value="">— Kies een opleiding —</option>
+        </select>
+        <button class="btn-secondary" onclick="openNieuweOpleidingNaam()" title="Nieuwe opleiding toevoegen" style="padding:10px 14px;">+</button>
+      </div>
+      <div id="nieuweOpleidingNaamWrapper" style="display:none;margin-top:8px;">
+        <div style="display:flex;gap:6px;">
+          <input class="form-input" id="fNieuweOpleidingNaam" placeholder="Naam nieuwe opleiding" style="flex:1;" />
+          <button class="btn-primary" onclick="voegOpleidingNaamToe()" style="padding:10px 14px;">Toevoegen</button>
+          <button class="btn-secondary" onclick="sluitNieuweOpleidingNaam()" style="padding:10px 12px;">✕</button>
+        </div>
+        <div id="opleidingNaamFout" style="display:none;color:var(--danger);font-size:0.78rem;margin-top:6px;font-weight:500;">⚠ Deze opleidingsnaam bestaat al.</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Datum opleiding</label>
+      <input class="form-input" type="date" id="fOpleidingDatum" />
+    </div>
+    <div class="form-row">
+      <label class="form-label">Opleider(s)</label>
+      <div id="opleidersDropdownWrapper" style="position:relative;">
+        <div id="opleidersToggle" onclick="toggleOpleidersDropdown()" style="cursor:pointer;padding:10px 12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.9rem;display:flex;justify-content:space-between;align-items:center;">
+          <span id="opleidersPlaceholder">— Kies opleider(s) —</span>
+          <span style="color:var(--text-muted);font-size:0.75rem;">▼</span>
+        </div>
+        <div id="opleidersDropdown" style="display:none;position:absolute;z-index:300;width:100%;background:var(--surface);border:1px solid var(--border);border-top:none;max-height:180px;overflow-y:auto;">
+          <div id="opleidersCheckboxes" style="padding:6px 0;"></div>
+          <div style="border-top:1px solid var(--border);padding:6px 10px;">
+            <div id="andersOpleiderWrapper" style="display:flex;gap:6px;align-items:center;">
+              <input class="form-input" id="fAndersOpleider" placeholder="Anders, namelijk..." style="flex:1;padding:6px 10px;font-size:0.85rem;" />
+              <button class="btn-primary" style="padding:6px 12px;font-size:0.75rem;" onclick="voegAndersOpleiderToe()">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="geselecteerdeOpleiders" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Hoofd Assistent Leerling</label>
+      <div style="position:relative;">
+        <input class="form-input" id="halZoek" placeholder="Zoek Hoofd Assistent Leerling…" oninput="filterHAL()" autocomplete="off" />
+        <div id="halSuggesties" style="display:none;position:absolute;z-index:400;width:100%;background:var(--surface);border:1px solid var(--border);border-top:none;max-height:160px;overflow-y:auto;"></div>
+      </div>
+      <div id="halGeselecteerd" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Deelnemers</label>
+      <input class="form-input" id="deelnemersZoek" placeholder="Zoek deelnemer…" oninput="filterDeelnemers()" style="margin-bottom:6px;" />
+      <div id="deelnemersList" style="max-height:160px;overflow-y:auto;border:1px solid var(--border);padding:8px;display:flex;flex-direction:column;"></div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Overdracht / notities</label>
+      <textarea class="form-textarea" id="fOpleidingNotes" placeholder="Beschrijf de opleiding, bijzonderheden, aandachtspunten…"></textarea>
+    </div>
+    </div>
+    <div id="opleidingFouten" style="display:none;margin:0 32px 0;padding:10px 14px;background:rgba(232,64,64,0.1);border-left:3px solid var(--danger);color:var(--danger);font-size:0.82rem;font-weight:500;"></div>
+    <div style="padding:16px 32px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;">
+      <button class="btn-secondary" onclick="closeModal('modalOpleiding')">Annuleren</button>
+      <button class="btn-primary" onclick="saveOpleiding()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Opleidingen beheren -->
+<div class="modal-backdrop hidden" id="modalBeheerOpleidingNamen">
+  <div class="modal">
+    <div class="modal-title">Opleidingen beheren</div>
+    <div id="opleidingNamenLijst" style="margin-bottom:20px;max-height:280px;overflow-y:auto;border:1px solid var(--border);"></div>
+    <div style="border-top:1px solid var(--border);padding-top:16px;">
+      <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">Nieuwe opleiding toevoegen</div>
+      <div style="display:flex;gap:8px;">
+        <input class="form-input" id="fBeheerNieuweNaam" placeholder="Naam opleiding" style="flex:1;" oninput="document.getElementById('beheerNaamFout').style.display='none'" />
+        <button class="btn-primary" onclick="beheerVoegOpleidingToe()" style="padding:10px 16px;">Toevoegen</button>
+      </div>
+      <div id="beheerNaamFout" style="display:none;color:var(--danger);font-size:0.78rem;margin-top:6px;font-weight:500;">⚠ Deze naam bestaat al.</div>
+    </div>
+    <div class="form-actions" style="margin-top:20px;">
+      <button class="btn-secondary" onclick="closeModal('modalBeheerOpleidingNamen')">Sluiten</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Verwijder opleiding naam uit beheer -->
+<div class="modal-backdrop hidden" id="modalVerwijderOpleidingNaam">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title">Opleiding verwijderen uit lijst?</div>
+    <p style="font-size:0.9rem;margin-bottom:12px;color:var(--text);">Je staat op het punt om <strong id="verwijderOpleidingNaamBeheer" style="color:var(--accent);"></strong> uit de keuzelijst te verwijderen.</p>
+    <p style="color:var(--danger);font-size:0.85rem;margin-bottom:24px;font-weight:600;">Let op: dit kan niet ongedaan worden gemaakt.</p>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('modalVerwijderOpleidingNaam')">Annuleren</button>
+      <button class="btn-primary" style="background:var(--danger);" onclick="confirmBeheerVerwijder()">Ja, verwijderen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Verwijder opleiding -->
+<div class="modal-backdrop hidden" id="modalVerwijderOpleiding">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title">Opleiding verwijderen?</div>
+    <p style="font-size:0.9rem;margin-bottom:12px;color:var(--text);">Je staat op het punt om de opleiding <strong id="verwijderOpleidingNaam" style="color:var(--accent);"></strong> te verwijderen.</p>
+    <p style="color:var(--danger);font-size:0.85rem;margin-bottom:16px;font-weight:600;">Let op: de complete overdracht verdwijnt permanent. Dit kan niet ongedaan worden gemaakt.</p>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('modalVerwijderOpleiding')">Annuleren</button>
+      <button class="btn-primary" style="background:var(--danger);" onclick="confirmVerwijderOpleiding()">Ja, verwijderen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Verwijder medewerker -->
+<div class="modal-backdrop hidden" id="modalVerwijderMedewerker">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title">Medewerker verwijderen?</div>
+    <p style="font-size:0.9rem; margin-bottom:12px; color:var(--text);">Je staat op het punt om <strong id="verwijderMedewerkerNaam" style="color:var(--accent);"></strong> uit het systeem te verwijderen.</p>
+    <p id="verwijderMedewerkerAantal" style="color:var(--danger); font-size:0.85rem; margin-bottom:16px; font-weight:600;"></p>
+    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:24px;">Dit kan niet ongedaan worden gemaakt.</p>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('modalVerwijderMedewerker')">Annuleren</button>
+      <button class="btn-primary" style="background:var(--danger);" onclick="confirmVerwijderMedewerker()">Ja, verwijderen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Admin Mode -->
+<div class="modal-backdrop hidden" id="modalAdminMode">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-title">Admin Mode</div>
+    <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:20px;">Voer het beheerderswachtwoord in om Admin Mode te activeren.</p>
+    <div class="form-row">
+      <label class="form-label">Beheerderswachtwoord</label>
+      <input class="form-input" type="password" id="fAdminWachtwoord" placeholder="••••••••" />
+    </div>
+    <div id="adminModeError" style="display:none; color:#ff8080; font-size:0.85rem; margin-top:-10px; margin-bottom:14px;">Onjuist wachtwoord.</div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeModal('modalAdminMode')">Annuleren</button>
+      <button class="btn-primary" onclick="activeerAdminMode()">Activeren</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Gebruikersbeheer -->
+<div class="modal-backdrop hidden" id="modalGebruikers">
+  <div class="modal">
+    <div class="modal-title">Gebruikersbeheer</div>
+    <div id="gebruikersLijst" style="margin-bottom:24px;"></div>
+    <div style="border-top:1px solid var(--border);padding-top:20px;">
+      <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:16px;">Nieuwe gebruiker toevoegen</div>
+      <div class="form-row">
+        <label class="form-label">Naam</label>
+        <input class="form-input" id="fNieuweGebruikerNaam" placeholder="Naam" />
+      </div>
+      <div style="display:none;"><input type="hidden" id="fNieuweGebruikerWW" /></div>
+      <div class="form-row">
+        <div class="checkbox-row">
+          <input type="checkbox" id="fNieuweGebruikerAdmin" />
+          <label for="fNieuweGebruikerAdmin">Beheerder</label>
+        </div>
+      </div>
+    </div>
+    <div id="gebruikerOpslaanBalk" style="display:none; background:rgba(232,80,10,0.1); border:1px solid var(--accent); padding:12px 16px; margin-top:16px; display:none; align-items:center; justify-content:space-between; gap:12px;">
+      <span style="font-size:0.8rem; color:var(--accent); font-weight:600;">⚠ Je hebt niet-opgeslagen wijzigingen</span>
+      <button class="btn-primary" onclick="slaAllesOp()" style="padding:7px 16px;">Opslaan</button>
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="saveNieuweGebruiker()">Gebruiker toevoegen</button>
+      <button class="btn-secondary" onclick="sluitGebruikersBeheer()">Sluiten</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ALGEMEEN_WACHTWOORD = 'ASOEMG2026';
+let SUPERBEHEERDER_NAAM = 'Robin van Braam'; // Naam van de eindverantwoordelijke - wordt bijgehouden
+
+const STANDAARD_GEBRUIKERS = [
+  { naam: 'Robin', admin: false, superadmin: true },
+  { naam: 'Wesley', admin: false },
+  { naam: 'Quincy', admin: false },
+  { naam: 'Bart', admin: false },
+  { naam: 'Cheyenne', admin: false },
+  { naam: 'Menno', admin: false },
+];
+
+const FUNCTIES = ['Assistent', 'Technisch Assistent', 'Hoofd Assistent', 'Stagiair'];
+
+let state = { collega: [], projectmanagers: [], overdrachten: [], gebruikers: [], opleidingen: [], opleidingNamen: [] };
+let actieveCollegaId = null;
+let editId = null;
+let verwijderId = null;
+let zoekQuery = '';
+let toonAlleenOpleidingen = false;
+let opleidingenZoekQuery = '';
+let huidigGebruiker = null;
+let openGroepen = new Set(FUNCTIES);
+let sidebarZoekQuery = '';
+let pendingGebruikersWijzigingen = false; // standaard alle groepen open
+
+function load() {
+  try {
+    const raw = localStorage.getItem('overdracht_data');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      state.collega         = Array.isArray(parsed.collega)         ? parsed.collega         : [];
+      state.projectmanagers = Array.isArray(parsed.projectmanagers) ? parsed.projectmanagers : [];
+      state.overdrachten    = Array.isArray(parsed.overdrachten)    ? parsed.overdrachten    : [];
+      state.opleidingen     = Array.isArray(parsed.opleidingen)     ? parsed.opleidingen     : [];
+      state.opleidingNamen  = Array.isArray(parsed.opleidingNamen)  ? parsed.opleidingNamen  : [];
+      if (Array.isArray(parsed.gebruikers) && parsed.gebruikers.length > 0) {
+        state.gebruikers = parsed.gebruikers;
+      }
+    }
+  } catch(e) {
+    console.warn('Kon data niet laden:', e);
+  }
+  // Gebruik standaard gebruikers als er nog geen zijn opgeslagen
+  if (!Array.isArray(state.gebruikers) || state.gebruikers.length === 0) {
+    state.gebruikers = STANDAARD_GEBRUIKERS.map(g => ({...g}));
+  } else {
+    // Herstel superadmin vlag altijd vanuit STANDAARD_GEBRUIKERS
+    STANDAARD_GEBRUIKERS.forEach((standaard, i) => {
+      if (standaard.superadmin && state.gebruikers[i]) {
+        state.gebruikers[i].superadmin = true;
+      }
+    });
+  }
+}
+
+function save() {
+  try {
+    const data = {
+      collega:         state.collega,
+      projectmanagers: state.projectmanagers,
+      overdrachten:    state.overdrachten,
+      gebruikers:      state.gebruikers,
+      opleidingen:     state.opleidingen,
+      opleidingNamen:  state.opleidingNamen,
+    };
+    localStorage.setItem('overdracht_data', JSON.stringify(data));
+  } catch(e) {
+    console.warn('Kon data niet opslaan:', e);
+    alert('Let op: data kon niet worden opgeslagen. Controleer je browserinstellingen.');
+  }
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function escHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function initLoginScherm() {
+  const sel = document.getElementById('loginNaam');
+  sel.innerHTML = '<option value="">— Kies je naam —</option>' +
+    state.gebruikers.map(g => `<option value="${escHtml(g.naam)}">${escHtml(g.naam)}</option>`).join('');
+}
+
+function login() {
+  const naam = document.getElementById('loginNaam').value;
+  const ww   = document.getElementById('loginWachtwoord').value;
+  const fout = document.getElementById('loginError');
+  const gebruiker = state.gebruikers.find(g => g.naam === naam) && ww === ALGEMEEN_WACHTWOORD ? state.gebruikers.find(g => g.naam === naam) : null;
+  if (!gebruiker) { fout.style.display = 'block'; return; }
+  fout.style.display = 'none';
+  huidigGebruiker = gebruiker;
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+  document.getElementById('headerNaam').textContent = gebruiker.naam;
+  if (gebruiker.superadmin || gebruiker.admin) document.getElementById('btnAdminMode').classList.remove('hidden');
+  if (gebruiker.admin) {
+    document.getElementById('headerAdminBadge').classList.remove('hidden');
+    document.getElementById('btnGebruikersBeheer').classList.remove('hidden');
+    // Maak knop groen als al admin bij inloggen
+    document.getElementById('btnAdminMode').classList.add('active');
+    document.getElementById('btnAdminMode').textContent = 'Admin Mode ✓';
+  } else {
+    // Zorg dat knop niet groen is als niet admin
+    document.getElementById('btnAdminMode').classList.remove('active');
+    document.getElementById('btnAdminMode').textContent = 'Admin Mode';
+  }
+  renderSidebar(); renderMain();
+}
+
+function logout() {
+  huidigGebruiker = null;
+  actieveCollegaId = null;
+  actieveOpleidingId = null;
+  toonAlleenOpleidingen = false;
+  zoekQuery = '';
+  sidebarZoekQuery = '';
+  opleidingenZoekQuery = '';
+
+  // Verberg app, toon login
+  document.getElementById('appScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('loginNaam').value = '';
+  document.getElementById('loginWachtwoord').value = '';
+
+  // Reset alle header knoppen
+  document.getElementById('headerAdminBadge').classList.add('hidden');
+  document.getElementById('btnGebruikersBeheer').classList.add('hidden');
+  document.getElementById('btnAdminMode').classList.add('hidden');
+  document.getElementById('btnAdminMode').classList.remove('active');
+  document.getElementById('btnAdminMode').textContent = 'Admin Mode';
+  document.getElementById('headerNaam').textContent = '';
+
+  // Reset alle main knoppen
+  ['btnFunctieWijzigen','btnNaamWijzigen','btnVerwijderMedewerker','btnNieuweOverdracht','btnFilterOpleidingen','btnBeheerOpleidingNamen'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.add('hidden'); el.style.background=''; el.style.color=''; el.style.borderColor=''; }
+  });
+
+  // Reset main content
+  document.getElementById('mainTitle').textContent = 'Selecteer een collega';
+  document.getElementById('mainSubtitle').textContent = 'Kies een collega in de zijbalk';
+  document.getElementById('headerInfo2').textContent = '';
+  document.getElementById('overdrachtenContainer').innerHTML = '';
+  document.getElementById('opleidingView').classList.add('hidden');
+  document.getElementById('zoekbalkWrapper').classList.add('hidden');
+  document.getElementById('zoekInfo').classList.add('hidden');
+
+  // Reset sidebar
+  const sz = document.getElementById('sidebarZoek'); if(sz) sz.value = '';
+  const oz = document.getElementById('opleidingenZoek'); if(oz) oz.value = '';
+
+  // Reset tab naar persoonlijke overdrachten
+  switchTab('persoonlijk');
+
+  // Sluit alle open modals
+  document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.add('hidden'));
+}
+
+document.getElementById('loginWachtwoord').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+function openAdminMode() {
+  if (huidigGebruiker && huidigGebruiker.admin) {
+    huidigGebruiker.admin = false;
+    document.getElementById('headerAdminBadge').classList.add('hidden');
+    document.getElementById('btnGebruikersBeheer').classList.add('hidden');
+    document.getElementById('btnAdminMode').classList.remove('active');
+    sidebarZoekQuery = ''; const sz = document.getElementById('sidebarZoek'); if(sz) sz.value = '';
+    document.getElementById('btnAdminMode').textContent = 'Admin Mode';
+    document.getElementById('btnBeheerOpleidingNamen').classList.add('hidden');
+    if (document.getElementById('tabOpleidingen').classList.contains('active') && !actieveOpleidingId) {
+      document.getElementById('mainTitle').textContent = 'Selecteer een opleiding';
+      document.getElementById('mainSubtitle').textContent = 'Kies een opleiding in de zijbalk';
+    }
+    renderSidebar(); renderMain(); return;
+  }
+  document.getElementById('fAdminWachtwoord').value = '';
+  document.getElementById('adminModeError').style.display = 'none';
+  document.getElementById('modalAdminMode').classList.remove('hidden');
+  setTimeout(() => document.getElementById('fAdminWachtwoord').focus(), 50);
+}
+
+function activeerAdminMode() {
+  if (document.getElementById('fAdminWachtwoord').value !== 'adminemg') {
+    document.getElementById('adminModeError').style.display = 'block'; return;
+  }
+  huidigGebruiker.admin = true;
+  document.getElementById('headerAdminBadge').classList.remove('hidden');
+  document.getElementById('btnGebruikersBeheer').classList.remove('hidden');
+  document.getElementById('btnAdminMode').classList.add('active');
+  document.getElementById('btnAdminMode').textContent = 'Admin Mode ✓';
+  closeModal('modalAdminMode');
+  // Update beheer knop als we op opleidingen tab staan
+  if (document.getElementById('tabOpleidingen').classList.contains('active')) {
+    document.getElementById('btnBeheerOpleidingNamen').classList.remove('hidden');
+  }
+  renderSidebar(); renderMain();
+}
+
+function openGebruikersBeheer() {
+  pendingGebruikersWijzigingen = false;
+  renderGebruikersLijst();
+  document.getElementById('fNieuweGebruikerNaam').value = '';
+  document.getElementById('fNieuweGebruikerAdmin').checked = false;
+  document.getElementById('gebruikerOpslaanBalk').style.display = 'none';
+  document.getElementById('modalGebruikers').classList.remove('hidden');
+}
+
+function toonOpslaanBalk() {
+  const balk = document.getElementById('gebruikerOpslaanBalk');
+  // Reset naar oranje "niet opgeslagen" staat
+  balk.style.background = 'rgba(232,80,10,0.1)';
+  balk.style.borderColor = 'var(--accent)';
+  balk.querySelector('span').style.color = 'var(--accent)';
+  balk.querySelector('span').textContent = '⚠ Je hebt niet-opgeslagen wijzigingen';
+  balk.querySelector('button').style.display = '';
+  balk.style.display = 'flex';
+}
+
+function slaAllesOp() {
+  save();
+  pendingGebruikersWijzigingen = false;
+  const balk = document.getElementById('gebruikerOpslaanBalk');
+  // Toon groene bevestiging
+  balk.style.background = 'rgba(46,204,113,0.1)';
+  balk.style.borderColor = 'var(--success)';
+  balk.querySelector('span').style.color = 'var(--success)';
+  balk.querySelector('span').textContent = '✓ Wijzigingen opgeslagen';
+  balk.querySelector('button').style.display = 'none';
+  balk.style.display = 'flex';
+  setTimeout(() => { balk.style.display = 'none'; }, 2000);
+}
+
+function sluitGebruikersBeheer() {
+  // Sluit alle open naam-edit velden eerst
+  state.gebruikers.forEach((g, i) => sluitNaamEdit(i));
+  if (pendingGebruikersWijzigingen) {
+    const keuze = confirm('Je hebt niet-opgeslagen wijzigingen.\nKlik OK om op te slaan en te sluiten, of Annuleren om terug te gaan.');
+    if (keuze) {
+      slaAllesOp();
+    } else {
+      return;
+    }
+  }
+  pendingGebruikersWijzigingen = false;
+  closeModal('modalGebruikers');
+}
+
+function renderGebruikersLijst() {
+  document.getElementById('gebruikersLijst').innerHTML = state.gebruikers.map((g, i) => `
+    <div class="gebruiker-row" id="gebruiker-row-${i}">
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div class="gebruiker-naam" id="gebruiker-naam-${i}">${escHtml(g.naam)}</div>
+          <button class="btn-secondary" style="font-size:0.65rem;padding:3px 8px;" onclick="openNaamEdit(${i})">✏ Naam</button>
+        </div>
+        <div id="naam-edit-${i}" style="display:none;margin-top:6px;">
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input class="form-input" id="naam-input-${i}" value="${escHtml(g.naam)}" style="padding:6px 10px;font-size:0.85rem;" />
+            <button class="btn-primary" style="padding:6px 12px;font-size:0.75rem;" onclick="slaGebruikersNaamOp(${i})">Opslaan</button>
+            <button class="btn-secondary" style="padding:6px 10px;font-size:0.75rem;" onclick="sluitNaamEdit(${i})">✕</button>
+          </div>
+          <div id="naam-edit-fout-${i}" style="display:none;color:var(--danger);font-size:0.75rem;margin-top:4px;font-weight:500;">⚠ Deze naam bestaat al.</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+          <div class="gebruiker-rol">${g.admin || g.superadmin ? 'Beheerder' : 'Medewerker'}</div>
+          ${!g.superadmin ? (g.admin ? `<button class="btn-secondary" style="font-size:0.62rem;padding:2px 8px;" onclick="wisselRechten(${i})">↓ Naar medewerker</button>` : `<button class="btn-secondary" style="font-size:0.62rem;padding:2px 8px;" onclick="wisselRechten(${i})">↑ Naar beheerder</button>`) : ''}
+        </div>
+      </div>
+      ${g.naam === huidigGebruiker.naam ? '<span style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">(jij)</span>' : !g.superadmin ? `<button class="btn-danger" onclick="verwijderGebruiker(${i})">Verwijder</button>` : ''}
+    </div>`).join('');
+}
+
+function wisselRechten(idx) {
+  const g = state.gebruikers[idx];
+  if (!g || g.superadmin) return; // Superbeheerder kan nooit worden gewijzigd
+  g.admin = !g.admin;
+  g.vasteBeheerder = g.admin; // Markeer als vaste beheerder (blijft na reload)
+  // Als de ingelogde gebruiker zelf rechten krijgt/verliest, update header
+  if (huidigGebruiker && huidigGebruiker.naam === g.naam) {
+    huidigGebruiker.admin = g.admin;
+    if (g.admin) {
+      document.getElementById('headerAdminBadge').classList.remove('hidden');
+      document.getElementById('btnGebruikersBeheer').classList.remove('hidden');
+      document.getElementById('btnAdminMode').classList.remove('hidden');
+    } else {
+      document.getElementById('headerAdminBadge').classList.add('hidden');
+      document.getElementById('btnGebruikersBeheer').classList.add('hidden');
+      if (!huidigGebruiker.superadmin) document.getElementById('btnAdminMode').classList.add('hidden');
+    }
+  }
+  pendingGebruikersWijzigingen = true;
+  toonOpslaanBalk();
+  renderGebruikersLijst();
+  renderSidebar();
+  renderMain();
+}
+
+function openNaamEdit(idx) {
+  // Sluit andere edits
+  state.gebruikers.forEach((g, i) => { if (i !== idx) sluitNaamEdit(i); });
+  document.getElementById('naam-edit-' + idx).style.display = 'block';
+  document.getElementById('naam-input-' + idx).focus();
+  document.getElementById('naam-input-' + idx).select();
+}
+
+function sluitNaamEdit(idx) {
+  const el = document.getElementById('naam-edit-' + idx);
+  if (el) el.style.display = 'none';
+}
+
+function slaGebruikersNaamOp(idx) {
+  const nieuweNaam = document.getElementById('naam-input-' + idx).value.trim();
+  const fout = document.getElementById('naam-edit-fout-' + idx);
+  if (!nieuweNaam) { alert('Vul een naam in.'); return; }
+  if (state.gebruikers.find((g, i) => i !== idx && g.naam.toLowerCase() === nieuweNaam.toLowerCase())) {
+    fout.style.display = 'block'; return;
+  }
+  fout.style.display = 'none';
+  const oudeNaam = state.gebruikers[idx].naam;
+  // Check VOOR de naamswijziging of dit de ingelogde gebruiker is
+  const isIngelogdeGebruiker = huidigGebruiker && huidigGebruiker.naam === oudeNaam;
+  state.gebruikers[idx].naam = nieuweNaam;
+  // Update auteur in alle overdrachten
+  state.overdrachten.forEach(o => { if (o.auteur === oudeNaam) o.auteur = nieuweNaam; });
+  // Update superbeheerder naam indien van toepassing
+  if (oudeNaam === SUPERBEHEERDER_NAAM) SUPERBEHEERDER_NAAM = nieuweNaam;
+  // Update ingelogde gebruiker naam en header
+  if (isIngelogdeGebruiker) {
+    huidigGebruiker.naam = nieuweNaam;
+    document.getElementById('headerNaam').textContent = nieuweNaam;
+  }
+  pendingGebruikersWijzigingen = true;
+  toonOpslaanBalk();
+  initLoginScherm();
+  renderGebruikersLijst();
+  renderSidebar();
+  renderMain();
+}
+
+function saveNieuweGebruiker() {
+  const naam  = document.getElementById('fNieuweGebruikerNaam').value.trim();
+  const admin = document.getElementById('fNieuweGebruikerAdmin').checked;
+  if (!naam) { alert('Vul een naam in.'); return; }
+  if (state.gebruikers.find(g => g.naam === naam)) { alert('Deze naam bestaat al.'); return; }
+  state.gebruikers.push({ naam, admin });
+  pendingGebruikersWijzigingen = true;
+  toonOpslaanBalk();
+  initLoginScherm(); renderGebruikersLijst();
+  document.getElementById('fNieuweGebruikerNaam').value = '';
+  document.getElementById('fNieuweGebruikerAdmin').checked = false;
+}
+
+function verwijderGebruiker(idx) {
+  if (!confirm('Gebruiker verwijderen?')) return;
+  state.gebruikers.splice(idx, 1);
+  pendingGebruikersWijzigingen = true;
+  toonOpslaanBalk();
+  initLoginScherm(); renderGebruikersLijst();
+}
+
+function renderSidebar() {
+  const container = document.getElementById('collegaGroepen');
+  let html = '';
+  FUNCTIES.forEach(functie => {
+    const alleleden = state.collega.filter(c => c.functie === functie);
+    const leden = sidebarZoekQuery
+      ? alleleden.filter(c => c.naam.toLowerCase().includes(sidebarZoekQuery))
+      : alleleden;
+    // Als er gezocht wordt, toon de groep altijd open als er resultaten zijn
+    if (sidebarZoekQuery && leden.length > 0) openGroepen.add(functie);
+    const groepOpen = openGroepen.has(functie) ? 'open' : '';
+    html += '<div class="sidebar-group ' + groepOpen + '"><div class="sidebar-group-label" onclick="toggleGroep(\'' + functie + '\')">'
+      + '<span>' + functie + '</span>'
+      + (alleleden.length > 0 ? '<span class="groep-count">' + alleleden.length + '</span>' : '')
+      + '<span class="groep-chevron">▼</span>'
+      + '</div><div class="sidebar-group-items">';
+    if (leden.length === 0) {
+      html += '<div class="sidebar-empty-group">Geen collega\'s</div>';
+    } else {
+      leden.forEach(c => {
+        const count = state.overdrachten.filter(o => o.collegaId === c.id).length;
+        const opvolgingCount = state.overdrachten.filter(o => o.collegaId === c.id && o.opvolging).length;
+        const opvolgingPct = count > 0 ? Math.round((opvolgingCount / count) * 100) : 0;
+        const waarschuwing = count > 0 && opvolgingPct >= 50
+          ? '<span title="' + opvolgingPct + '% van de overdrachten vereist opvolging" style="color:#f0a500;font-size:0.9rem;flex-shrink:0;margin-left:2px;" onclick="event.stopPropagation()">&#9888;</span>'
+          : '';
+        const initials = c.naam.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+        const active = actieveCollegaId === c.id ? 'active' : '';
+        html += '<div class="collega-item ' + active + '" onclick="selectCollega(\'' + c.id + '\')">'
+          + '<div class="collega-avatar">' + initials + '</div>'
+          + '<span>' + escHtml(c.naam) + '</span>'
+          + waarschuwing
+          + (count > 0 ? '<span class="collega-count">' + count + '</span>' : '')
+          + '</div>';
+      });
+    }
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function switchTab(tab) {
+  const persoonlijk = document.getElementById('tabPersoonlijkContent');
+  const opleidingen = document.getElementById('tabOpleidingenContent');
+  const tabP = document.getElementById('tabPersoneel');
+  const tabO = document.getElementById('tabOpleidingen');
+  const btnCollega  = document.getElementById('btnAddCollega');
+  const btnOpleiding = document.getElementById('btnAddOpleiding');
+  if (tab === 'persoonlijk') {
+    persoonlijk.classList.add('active');
+    opleidingen.classList.remove('active');
+    tabP.classList.add('active');
+    tabO.classList.remove('active');
+    btnCollega.classList.remove('hidden');
+    btnOpleiding.classList.add('hidden');
+    const bb = document.getElementById('btnBeheerOpleidingNamen');
+    if (bb) bb.classList.add('hidden');
+    // Reset rechter scherm
+    actieveOpleidingId = null;
+    document.getElementById('opleidingView').classList.add('hidden');
+    actieveCollegaId = null;
+    renderSidebar();
+    renderMain();
+  } else {
+    opleidingen.classList.add('active');
+    persoonlijk.classList.remove('active');
+    tabO.classList.add('active');
+    tabP.classList.remove('active');
+    btnCollega.classList.add('hidden');
+    btnOpleiding.classList.remove('hidden');
+    // Toon/verberg beheer knop op basis van admin rechten
+    const beheerBtn = document.getElementById('btnBeheerOpleidingNamen');
+    if (beheerBtn) {
+      if (huidigGebruiker && huidigGebruiker.admin) beheerBtn.classList.remove('hidden');
+      else beheerBtn.classList.add('hidden');
+    }
+    // Reset rechter scherm
+    actieveCollegaId = null;
+    actieveOpleidingId = null;
+    document.getElementById('opleidingView').classList.add('hidden');
+    document.getElementById('overdrachtenContainer').innerHTML = '';
+    document.getElementById('zoekbalkWrapper').classList.add('hidden');
+    document.getElementById('zoekInfo').classList.add('hidden');
+    document.getElementById('headerInfo2').textContent = '';
+    ['btnFunctieWijzigen','btnNaamWijzigen','btnVerwijderMedewerker','btnNieuweOverdracht','btnFilterOpleidingen'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.getElementById('mainTitle').textContent = 'Selecteer een opleiding';
+    document.getElementById('mainSubtitle').textContent = 'Kies een opleiding in de zijbalk';
+    opleidingenZoekQuery = '';
+    const oz = document.getElementById('opleidingenZoek'); if(oz) oz.value = '';
+    renderOpleidingenLijst();
+  }
+}
+
+function filterSidebar() {
+  sidebarZoekQuery = document.getElementById('sidebarZoek').value.toLowerCase().trim();
+  renderSidebar();
+}
+
+function toggleGroep(functie) {
+  if (openGroepen.has(functie)) openGroepen.delete(functie);
+  else openGroepen.add(functie);
+  renderSidebar();
+}
+
+function selectCollega(id) {
+  actieveCollegaId = id; zoekQuery = ''; toonAlleenOpleidingen = false; closeSidebarOnMobile();
+  const fb = document.getElementById('btnFilterOpleidingen'); if(fb){fb.style.background='';fb.style.color='';fb.style.borderColor='';fb.textContent='Opleidingen';}
+  actieveOpleidingId = null;
+  document.getElementById('opleidingView').classList.add('hidden');
+  const zb = document.getElementById('zoekbalk');
+  if (zb) zb.value = '';
+  renderSidebar(); renderMain();
+}
+
+function renderMain() {
+  const title  = document.getElementById('mainTitle');
+  const sub    = document.getElementById('mainSubtitle');
+  const btn    = document.getElementById('btnNieuweOverdracht');
+  const btnF   = document.getElementById('btnFunctieWijzigen');
+  const cont   = document.getElementById('overdrachtenContainer');
+  const hdr2   = document.getElementById('headerInfo2');
+
+  if (!actieveCollegaId) {
+    // Toon juiste tekst afhankelijk van actief tabblad
+    const oplTab = document.getElementById('tabOpleidingen');
+    if (oplTab && oplTab.classList.contains('active')) {
+      title.textContent = 'Selecteer een opleiding';
+      sub.textContent   = 'Kies een opleiding in de zijbalk';
+    } else {
+      title.textContent = 'Selecteer een collega';
+      sub.textContent   = 'Kies een collega in de zijbalk';
+    }
+    btn.classList.add('hidden'); btnF.classList.add('hidden');
+    document.getElementById('btnVerwijderMedewerker').classList.add('hidden');
+    document.getElementById('btnNaamWijzigen').classList.add('hidden');
+    document.getElementById('btnFilterOpleidingen').classList.add('hidden');
+    document.getElementById('zoekbalkWrapper').classList.add('hidden');
+    document.getElementById('zoekInfo').classList.add('hidden');
+    cont.innerHTML = ''; hdr2.textContent = ''; return;
+  }
+
+  const collega = state.collega.find(c => c.id === actieveCollegaId);
+  if (!collega) return;
+
+  // Persoonlijke overdrachten
+  const persoonlijkeOverdrachten = state.overdrachten
+    .filter(o => o.collegaId === actieveCollegaId);
+
+  // Opleiding-overdrachten: opleidingen waarbij deze collega deelnemer is
+  const opleidingOverdrachten = state.opleidingen
+    .filter(op => (op.deelnemers && op.deelnemers.includes(collega.naam)) || (op.halLeerlingen && op.halLeerlingen.includes(collega.naam)))
+    .map(op => ({
+      id: 'opl_' + op.id,
+      isOpleiding: true,
+      opleidingId: op.id,
+      klus: op.naam,
+      datum: op.datum,
+      notes: op.notes,
+      opleiders: op.opleiders,
+      deelnemers: op.deelnemers,
+    }));
+
+  // Combineer en sorteer op datum
+  const alleOverdrachten = [...persoonlijkeOverdrachten, ...opleidingOverdrachten]
+    .sort((a,b) => { const da = a.datum ? new Date(a.datum) : new Date(0); const db = b.datum ? new Date(b.datum) : new Date(0); return db - da; });
+
+  const alleOvDrMain = state.overdrachten.filter(o => o.collegaId === actieveCollegaId);
+  const opvolgMain   = alleOvDrMain.filter(o => o.opvolging).length;
+  const pctMain      = alleOvDrMain.length > 0 ? Math.round((opvolgMain / alleOvDrMain.length) * 100) : 0;
+  const waarschuwingMain = alleOvDrMain.length > 0 && pctMain >= 50
+    ? ' <span title="' + pctMain + '% van de overdrachten vereist opvolging (' + opvolgMain + ' van de ' + alleOvDrMain.length + ')" style="color:#f0a500;font-size:1.4rem;cursor:default;vertical-align:middle;">&#9888;</span>'
+    : '';
+  title.innerHTML = escHtml(collega.naam) + waarschuwingMain;
+  sub.textContent = collega.functie || '';
+  hdr2.textContent  = alleOverdrachten.length + ' overdracht' + (alleOverdrachten.length !== 1 ? 'en' : '') + ' (' + opleidingOverdrachten.length + ' opleiding' + (opleidingOverdrachten.length !== 1 ? 'en' : '') + ')';
+  btn.classList.remove('hidden'); btnF.classList.remove('hidden');
+  document.getElementById('btnFilterOpleidingen').classList.remove('hidden');
+  const verwijderBtn = document.getElementById('btnVerwijderMedewerker');
+  if (huidigGebruiker && huidigGebruiker.admin) verwijderBtn.classList.remove('hidden');
+  else verwijderBtn.classList.add('hidden');
+  const naamBtn = document.getElementById('btnNaamWijzigen');
+  if (huidigGebruiker && huidigGebruiker.admin) naamBtn.classList.remove('hidden');
+  else naamBtn.classList.add('hidden');
+  document.getElementById('zoekbalkWrapper').classList.remove('hidden');
+
+  const q = zoekQuery.toLowerCase().trim();
+  let list = q ? alleOverdrachten.filter(o =>
+    (o.klus||'').toLowerCase().includes(q) || (o.pm||'').toLowerCase().includes(q) ||
+    (o.auteur||'').toLowerCase().includes(q) || (o.notes||'').toLowerCase().includes(q) ||
+    (o.opleiders||[]).some(n => n.toLowerCase().includes(q))) : alleOverdrachten;
+  if (toonAlleenOpleidingen) list = list.filter(o => o.isOpleiding);
+
+  const zoekInfoEl = document.getElementById('zoekInfo');
+  if (q) { zoekInfoEl.textContent = list.length + ' resultaat' + (list.length !== 1 ? 'en' : '') + ' voor "' + zoekQuery + '"'; zoekInfoEl.classList.remove('hidden'); }
+  else zoekInfoEl.classList.add('hidden');
+
+  if (persoonlijkeOverdrachten.length === 0 && opleidingOverdrachten.length === 0) {
+    cont.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><h3>Nog geen overdrachten</h3><p>Klik op "+ Nieuwe overdracht" om te beginnen.</p></div>'; return;
+  }
+  if (list.length === 0) {
+    cont.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><h3>Geen resultaten</h3><p>Geen overdrachten gevonden voor "' + zoekQuery + '".</p></div>'; return;
+  }
+
+  function hl(str) {
+    if (!q) return escHtml(str);
+    return escHtml(str).replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')','gi'),'<span class="highlight">$1</span>');
+  }
+
+  const isAdmin = huidigGebruiker && huidigGebruiker.admin;
+
+  cont.innerHTML = list.map(o => {
+    const d = o.datum ? new Date(o.datum).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}) : '—';
+
+    if (o.isOpleiding) {
+      const opleiders = (o.opleiders && o.opleiders.length) ? escHtml(o.opleiders.join(', ')) : '<em style="color:var(--text-muted)">Niet opgegeven</em>';
+      const aantalDln = o.deelnemers ? o.deelnemers.length : 0;
+      return '<div class="card card-opleiding" id="card-' + o.id + '">'
+        + '<div class="card-klap" onclick="toggleCard(\'' + o.id + '\')">'
+        + '<div style="display:flex;flex-direction:column;gap:3px;flex:1;">'
+        + '<span style="font-size:0.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);">&#127891; Opleiding</span>'
+        + '<span class="klus-naam">' + hl(o.klus || 'Naamloze opleiding') + '</span>'
+        + '<span class="card-date">&#128197; ' + (o.datum ? new Date(o.datum).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}) : 'Geen datum') + '</span>'
+        + '</div>'
+        + '<svg class="card-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
+        + '</div>'
+        + '<div class="card-body">'
+        + '<div class="card-fields">'
+        + '<div class="field"><div class="field-label">Opleider(s)</div><div class="field-value">' + opleiders + '</div></div>'
+        + '<div class="field"><div class="field-label">Datum</div><div class="field-value' + (!o.datum ? ' empty' : '') + '">' + (o.datum ? d : 'Niet ingevuld') + '</div></div>'
+        + '<div class="field"><div class="field-label">Deelnemers</div><div class="field-value">' + aantalDln + ' deelnemer' + (aantalDln !== 1 ? 's' : '') + '</div></div>'
+        + (o.halLeerlingen && o.halLeerlingen.length > 0 ? '<div class="field"><div class="field-label">Hoofd Ass. Leerling</div><div class="field-value">' + escHtml(o.halLeerlingen.join(', ')) + '</div></div>' : '')
+        + '</div>'
+        + (o.notes ? '<div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-top:12px;margin-bottom:4px;">Algemene opmerkingen opleiding</div><div class="card-notes">' + hl(o.notes) + '</div>' : '')
+        + '<div style="display:flex;justify-content:flex-end;margin-top:12px;">'
+        + '<button class="btn-primary" style="font-size:0.72rem;padding:6px 14px;" onclick="event.stopPropagation();naarOpleiding(\'' + o.opleidingId + '\')">Bekijk opleiding &#8594;</button>'
+        + '</div>'
+        + '</div></div>';
+    }
+
+    const magVerwijderen = isAdmin || (huidigGebruiker && o.auteur === huidigGebruiker.naam);
+    return '<div class="card" id="card-' + o.id + '">'
+      + '<div class="card-klap" onclick="toggleCard(\'' + o.id + '\')">'
+      + '<div style="display:flex;flex-direction:column;gap:4px;flex:1;">'
+      + '<span class="klus-naam' + (!o.klus?' leeg':'') + '">' + hl(o.klus || 'Geen klus opgegeven') + '</span>'
+      + '<span class="card-date">📅 ' + (o.datum ? new Date(o.datum).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}) : 'Geen datum') + '</span>'
+      + (o.gegaanAls ? '<span style="font-size:0.72rem;color:var(--accent);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">▸ ' + escHtml(o.gegaanAls) + '</span>' : '')
+      + (o.opvolging ? '<span class="badge badge-opvolging" style="margin-top:2px;width:fit-content;">⚠ Opvolging vereist</span>' : '')
+      + '</div>'
+      + '<svg class="card-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
+      + '</div>'
+      + '<div class="card-body">'
+      + '<div class="card-header" style="margin-bottom:14px;">'
+      + '<div class="card-meta"><span class="card-author">✍ ' + escHtml(o.auteur || '—') + '</span>'
+      + (o.opvolging ? '' : '<span class="badge badge-ok">✓ Geen opvolging</span>')
+      + '</div>'
+      + '<div class="card-actions">'
+      + (magVerwijderen ? '<button class="btn-secondary" style="font-size:0.72rem;padding:5px 12px;" onclick="openEditOverdracht(\'' + o.id + '\')">Bewerken</button>' : '')
+      + (magVerwijderen ? '<button class="btn-danger" onclick="openVerwijder(\'' + o.id + '\')">Verwijder</button>' : '')
+      + '</div></div>'
+      + '<div class="card-fields">'
+      + '<div class="field"><div class="field-label">Functie</div><div class="field-value' + (!o.gegaanAls?' empty':'') + '">' + escHtml(o.gegaanAls||'Niet ingevuld') + '</div></div>'
+      + '<div class="field"><div class="field-label">Klus</div><div class="field-value' + (!o.klus?' empty':'') + '">' + hl(o.klus||'Niet ingevuld') + '</div></div>'
+      + '<div class="field"><div class="field-label">Datum klus</div><div class="field-value' + (!o.datum?' empty':'') + '">' + (o.datum?d:'Niet ingevuld') + '</div></div>'
+      + '<div class="field"><div class="field-label">Projectmanager</div><div class="field-value' + (!o.pm?' empty':'') + '">' + escHtml(o.pm||'Niet ingevuld') + '</div></div>'
+      + '</div>'
+      + (o.notes ? '<div class="card-notes">' + hl(o.notes) + '</div>' : '')
+      + '</div></div>';
+  }).join('');
+}
+
+function openBeheerOpleidingNamen() {
+  renderOpleidingNamenLijst();
+  document.getElementById('fBeheerNieuweNaam').value = '';
+  document.getElementById('beheerNaamFout').style.display = 'none';
+  document.getElementById('modalBeheerOpleidingNamen').classList.remove('hidden');
+  setTimeout(() => document.getElementById('fBeheerNieuweNaam').focus(), 50);
+}
+
+function renderOpleidingNamenLijst() {
+  const container = document.getElementById('opleidingNamenLijst');
+  if (!state.opleidingNamen || state.opleidingNamen.length === 0) {
+    container.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:0.85rem;text-align:center;">Nog geen opleidingen toegevoegd.</div>';
+    return;
+  }
+  container.innerHTML = state.opleidingNamen.map((naam, i) => {
+    return '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);" id="beheer-row-' + i + '">'
+      + '<div id="beheer-naam-' + i + '" style="flex:1;font-size:0.9rem;font-weight:500;">' + escHtml(naam) + '</div>'
+      + '<div id="beheer-edit-' + i + '" style="display:none;flex:1;">'
+      + '<input class="form-input" id="beheer-input-' + i + '" value="' + escHtml(naam) + '" style="padding:5px 10px;font-size:0.85rem;" />'
+      + '<div id="beheer-edit-fout-' + i + '" style="display:none;color:var(--danger);font-size:0.72rem;margin-top:3px;">⚠ Naam bestaat al.</div>'
+      + '</div>'
+      + '<button class="btn-secondary" id="beheer-btn-edit-' + i + '" style="font-size:0.65rem;padding:3px 8px;" onclick="beheerOpenEdit(' + i + ')">✏</button>'
+      + '<button class="btn-primary" id="beheer-btn-save-' + i + '" style="display:none;font-size:0.65rem;padding:3px 8px;" onclick="beheerSlaOp(' + i + ')">Opslaan</button>'
+      + '<button class="btn-secondary" id="beheer-btn-cancel-' + i + '" style="display:none;font-size:0.65rem;padding:3px 8px;" onclick="beheerAnnuleer(' + i + ')">✕</button>'
+      + '<button class="btn-danger" style="font-size:0.72rem;padding:3px 8px;" onclick="beheerVerwijderNaam(' + i + ')">Verwijder</button>'
+      + '</div>';
+  }).join('');
+}
+
+function beheerOpenEdit(i) {
+  document.getElementById('beheer-naam-' + i).style.display = 'none';
+  document.getElementById('beheer-edit-' + i).style.display = 'block';
+  document.getElementById('beheer-btn-edit-' + i).style.display = 'none';
+  document.getElementById('beheer-btn-save-' + i).style.display = '';
+  document.getElementById('beheer-btn-cancel-' + i).style.display = '';
+  document.getElementById('beheer-input-' + i).focus();
+}
+
+function beheerAnnuleer(i) {
+  document.getElementById('beheer-naam-' + i).style.display = '';
+  document.getElementById('beheer-edit-' + i).style.display = 'none';
+  document.getElementById('beheer-btn-edit-' + i).style.display = '';
+  document.getElementById('beheer-btn-save-' + i).style.display = 'none';
+  document.getElementById('beheer-btn-cancel-' + i).style.display = 'none';
+}
+
+function beheerSlaOp(i) {
+  const nieuweNaam = document.getElementById('beheer-input-' + i).value.trim();
+  const fout = document.getElementById('beheer-edit-fout-' + i);
+  if (!nieuweNaam) { alert('Vul een naam in.'); return; }
+  if (state.opleidingNamen.some((n, idx) => idx !== i && n.toLowerCase() === nieuweNaam.toLowerCase())) {
+    fout.style.display = 'block'; return;
+  }
+  fout.style.display = 'none';
+  state.opleidingNamen[i] = nieuweNaam;
+  save();
+  populateOpleidingNamenSelect('');
+  renderOpleidingNamenLijst();
+}
+
+function beheerVerwijderNaam(i) {
+  const naam = state.opleidingNamen[i];
+  document.getElementById('verwijderOpleidingNaamBeheer').textContent = naam;
+  document.getElementById('modalVerwijderOpleidingNaam').dataset.idx = i;
+  document.getElementById('modalVerwijderOpleidingNaam').classList.remove('hidden');
+}
+
+function confirmBeheerVerwijder() {
+  const i = parseInt(document.getElementById('modalVerwijderOpleidingNaam').dataset.idx);
+  state.opleidingNamen.splice(i, 1);
+  save();
+  populateOpleidingNamenSelect('');
+  closeModal('modalVerwijderOpleidingNaam');
+  renderOpleidingNamenLijst();
+}
+
+function beheerVoegOpleidingToe() {
+  const naam = document.getElementById('fBeheerNieuweNaam').value.trim();
+  const fout = document.getElementById('beheerNaamFout');
+  if (!naam) { fout.textContent = '⚠ Vul een naam in.'; fout.style.display = 'block'; return; }
+  if (state.opleidingNamen.map(n => n.toLowerCase()).includes(naam.toLowerCase())) {
+    fout.style.display = 'block'; return;
+  }
+  fout.style.display = 'none';
+  state.opleidingNamen.push(naam);
+  save();
+  populateOpleidingNamenSelect(naam);
+  document.getElementById('fBeheerNieuweNaam').value = '';
+  renderOpleidingNamenLijst();
+}
+
+function openVerwijderOpleiding(id) {
+  const o = state.opleidingen.find(x => x.id === id);
+  if (!o) return;
+  document.getElementById('verwijderOpleidingNaam').textContent = o.naam || 'Naamloos';
+  document.getElementById('modalVerwijderOpleiding').dataset.id = id;
+  document.getElementById('modalVerwijderOpleiding').classList.remove('hidden');
+}
+
+function confirmVerwijderOpleiding() {
+  const id = document.getElementById('modalVerwijderOpleiding').dataset.id;
+  state.opleidingen = state.opleidingen.filter(o => o.id !== id);
+  save();
+  closeModal('modalVerwijderOpleiding');
+  actieveOpleidingId = null;
+  document.getElementById('opleidingView').classList.add('hidden');
+  document.getElementById('mainTitle').textContent = 'Selecteer een opleiding';
+  document.getElementById('mainSubtitle').textContent = 'Kies een opleiding in de zijbalk';
+  renderOpleidingenLijst();
+}
+
+function naarOpleiding(opleidingId) {
+  switchTab('opleidingen');
+  setTimeout(() => {
+    selectOpleiding(opleidingId);
+    renderOpleidingenLijst();
+    closeSidebarOnMobile();
+  }, 50);
+}
+
+function openVerwijderMedewerker() {
+  if (!actieveCollegaId) return;
+  const collega = state.collega.find(c => c.id === actieveCollegaId);
+  if (!collega) return;
+  const aantal = state.overdrachten.filter(o => o.collegaId === actieveCollegaId).length;
+  document.getElementById('verwijderMedewerkerNaam').textContent = collega.naam;
+  const aantalTekst = aantal > 0
+    ? 'Let op: er ' + (aantal===1?'is':'zijn') + ' ' + aantal + ' overdracht' + (aantal===1?'':'en') + ' gekoppeld aan deze medewerker. Als je doorgaat gaan alle overdrachten permanent verloren.'
+    : 'Let op: als je doorgaat wordt deze medewerker permanent verwijderd uit het systeem.';
+  document.getElementById('verwijderMedewerkerAantal').textContent = aantalTekst;
+  document.getElementById('modalVerwijderMedewerker').classList.remove('hidden');
+}
+
+function confirmVerwijderMedewerker() {
+  const id = actieveCollegaId;
+  state.collega = state.collega.filter(c => c.id !== id);
+  state.overdrachten = state.overdrachten.filter(o => o.collegaId !== id);
+  actieveCollegaId = null; save();
+  closeModal('modalVerwijderMedewerker'); renderSidebar(); renderMain();
+}
+
+function openAddCollega() {
+  document.getElementById('fCollegaNaam').value = '';
+  document.getElementById('fCollegaFunctie').value = '';
+  document.getElementById('functieFout').style.display = 'none';
+  document.getElementById('naamFout').style.display = 'none';
+  document.getElementById('modalCollega').classList.remove('hidden');
+  setTimeout(() => document.getElementById('fCollegaNaam').focus(), 50);
+}
+
+function saveCollega() {
+  const naam = document.getElementById('fCollegaNaam').value.trim();
+  const functie = document.getElementById('fCollegaFunctie').value;
+  if (!naam) { alert('Vul een naam in.'); return; }
+  if (!functie) { document.getElementById('functieFout').style.display = 'block'; return; }
+  if (state.collega.find(c => c.naam.toLowerCase() === naam.toLowerCase())) {
+    document.getElementById('naamFout').style.display = 'block'; return;
+  }
+  state.collega.push({ id: uid(), naam, functie });
+  save(); closeModal('modalCollega'); renderSidebar();
+}
+
+function openWijzigFunctie() {
+  const collega = state.collega.find(c => c.id === actieveCollegaId);
+  if (!collega) return;
+  document.getElementById('fNieuweFunctie').value = collega.functie || '';
+  document.getElementById('modalFunctie').classList.remove('hidden');
+}
+
+function openWijzigNaam() {
+  const collega = state.collega.find(c => c.id === actieveCollegaId);
+  if (!collega) return;
+  document.getElementById('fNieuweNaam').value = collega.naam;
+  document.getElementById('modalNaam').classList.remove('hidden');
+  setTimeout(() => document.getElementById('fNieuweNaam').focus(), 50);
+}
+
+function saveNaamWijziging() {
+  const naam = document.getElementById('fNieuweNaam').value.trim();
+  if (!naam) { alert('Vul een naam in.'); return; }
+  const idx = state.collega.findIndex(c => c.id === actieveCollegaId);
+  if (idx > -1) { state.collega[idx].naam = naam; save(); }
+  closeModal('modalNaam'); renderSidebar(); renderMain();
+}
+
+function saveFunctieWijziging() {
+  const functie = document.getElementById('fNieuweFunctie').value;
+  if (!functie) { alert('Kies een functie.'); return; }
+  const idx = state.collega.findIndex(c => c.id === actieveCollegaId);
+  if (idx > -1) { state.collega[idx].functie = functie; save(); }
+  closeModal('modalFunctie'); renderSidebar(); renderMain();
+}
+
+function openAddPM() {
+  document.getElementById('fPMNaam').value = '';
+  document.getElementById('pmFout').style.display = 'none';
+  document.getElementById('modalPM').classList.remove('hidden');
+  setTimeout(() => document.getElementById('fPMNaam').focus(), 50);
+}
+
+function savePM() {
+  const naam = document.getElementById('fPMNaam').value.trim();
+  if (!naam) { alert('Vul een naam in.'); return; }
+  if (state.projectmanagers.map(p => p.toLowerCase()).includes(naam.toLowerCase())) {
+    document.getElementById('pmFout').style.display = 'block'; return;
+  }
+  state.projectmanagers.push(naam); save();
+  populatePMSelect(naam); closeModal('modalPM');
+}
+
+function populatePMSelect(selected) {
+  document.getElementById('fPM').innerHTML = '<option value="">— Kies projectmanager —</option>' +
+    state.projectmanagers.map(pm => '<option value="' + escHtml(pm) + '"' + (pm===selected?' selected':'') + '>' + escHtml(pm) + '</option>').join('');
+}
+
+function populateAuteurSelect(selected) {
+  document.getElementById('fAuteur').innerHTML = state.gebruikers.map(g =>
+    '<option value="' + escHtml(g.naam) + '"' + (g.naam===selected?' selected':'') + '>' + escHtml(g.naam) + '</option>').join('');
+}
+
+function openNieuweOverdracht() {
+  editId = null;
+  document.getElementById('modalOverdrachtTitle').textContent = 'Nieuwe overdracht';
+  document.getElementById('fKlus').value = '';
+  document.getElementById('fDatum').value = new Date().toISOString().slice(0,10);
+  populateAuteurSelect(huidigGebruiker ? huidigGebruiker.naam : '');
+  document.getElementById('fNotes').value = '';
+  document.getElementById('fOpvolging').checked = false;
+  document.getElementById('fGegaanAls').value = '';
+  populatePMSelect('');
+  document.getElementById('modalOverdracht').classList.remove('hidden');
+  setTimeout(() => document.getElementById('fKlus').focus(), 50);
+}
+
+function openEditOverdracht(id) {
+  const o = state.overdrachten.find(x => x.id === id);
+  if (!o) return;
+  editId = id;
+  document.getElementById('modalOverdrachtTitle').textContent = 'Overdracht bewerken';
+  document.getElementById('fKlus').value  = o.klus  || '';
+  document.getElementById('fDatum').value = o.datum || '';
+  populateAuteurSelect(o.auteur || (huidigGebruiker ? huidigGebruiker.naam : ''));
+  document.getElementById('fNotes').value = o.notes || '';
+  document.getElementById('fOpvolging').checked = !!o.opvolging;
+  document.getElementById('fGegaanAls').value = o.gegaanAls || '';
+  populatePMSelect(o.pm || '');
+  document.getElementById('modalOverdracht').classList.remove('hidden');
+}
+
+function saveOverdracht() {
+  const data = {
+    collegaId: actieveCollegaId,
+    klus:      document.getElementById('fKlus').value.trim(),
+    datum:     document.getElementById('fDatum').value,
+    pm:        document.getElementById('fPM').value,
+    auteur:    document.getElementById('fAuteur').value,
+    notes:     document.getElementById('fNotes').value.trim(),
+    opvolging: document.getElementById('fOpvolging').checked,
+    gegaanAls: document.getElementById('fGegaanAls').value,
+  };
+  if (editId) {
+    const idx = state.overdrachten.findIndex(x => x.id === editId);
+    if (idx > -1) state.overdrachten[idx] = { ...state.overdrachten[idx], ...data };
+  } else {
+    state.overdrachten.push({ id: uid(), aangemaaktOp: Date.now(), ...data });
+  }
+  save(); closeModal('modalOverdracht'); renderSidebar(); renderMain();
+}
+
+function openVerwijder(id) { verwijderId = id; document.getElementById('modalVerwijder').classList.remove('hidden'); }
+function confirmVerwijder() { state.overdrachten = state.overdrachten.filter(o => o.id !== verwijderId); save(); closeModal('modalVerwijder'); renderSidebar(); renderMain(); }
+function toggleCard(id) { const c = document.getElementById('card-'+id); if(c) c.classList.toggle('open'); }
+function toggleOpleidingFilter() {
+  toonAlleenOpleidingen = !toonAlleenOpleidingen;
+  const btn = document.getElementById('btnFilterOpleidingen');
+  if (toonAlleenOpleidingen) {
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#fff';
+    btn.style.borderColor = 'var(--accent)';
+    btn.textContent = 'Opleidingen ✓';
+  } else {
+    btn.style.background = '';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+    btn.textContent = 'Opleidingen';
+  }
+  renderMain();
+}
+
+function filterOverdrachten() { zoekQuery = document.getElementById('zoekbalk').value; renderMain(); }
+// ── OPLEIDINGEN ───────────────────────────────────────────────────────────
+let actieveOpleidingId = null;
+let opleiderTellers = 0;
+
+function filterOpleidingen() {
+  opleidingenZoekQuery = document.getElementById('opleidingenZoek').value.toLowerCase().trim();
+  renderOpleidingenLijst();
+}
+
+function renderOpleidingenLijst() {
+  const container = document.getElementById('opleidingenLijst');
+  if (!container) return;
+  if (state.opleidingen.length === 0) {
+    container.innerHTML = '<div style="padding:24px 16px;text-align:center;color:var(--text-muted);font-size:0.82rem;">Nog geen opleidingen.<br>Klik op "+ Opleiding toevoegen".</div>';
+    return;
+  }
+  let gesorteerd = [...state.opleidingen].sort((a,b) => {
+    const da = a.datum ? new Date(a.datum) : new Date(0);
+    const db = b.datum ? new Date(b.datum) : new Date(0);
+    return db - da;
+  });
+  if (opleidingenZoekQuery) {
+    gesorteerd = gesorteerd.filter(o =>
+      (o.naam||'').toLowerCase().includes(opleidingenZoekQuery) ||
+      (o.opleiders||[]).some(n => n.toLowerCase().includes(opleidingenZoekQuery)) ||
+      (o.notes||'').toLowerCase().includes(opleidingenZoekQuery)
+    );
+  }
+  if (gesorteerd.length === 0 && opleidingenZoekQuery) {
+    container.innerHTML = '<div style="padding:20px 16px;text-align:center;color:var(--text-muted);font-size:0.82rem;">Geen opleidingen gevonden.</div>';
+    return;
+  }
+  container.innerHTML = gesorteerd.map(o => {
+    const d = o.datum ? new Date(o.datum).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}) : 'Geen datum';
+    const aantalDeelnemers = o.deelnemers ? o.deelnemers.length : 0;
+    const isActief = actieveOpleidingId === o.id;
+    return '<div class="collega-item' + (isActief ? ' active' : '') + '" style="flex-direction:column;align-items:flex-start;gap:2px;padding:10px 14px;border-bottom:1px solid var(--border);" onclick="selectOpleiding(\'' + o.id + '\')">'
+      + '<span style="font-weight:600;font-size:0.875rem;color:var(--text);">' + escHtml(o.naam || 'Naamloos') + '</span>'
+      + '<span style="font-size:0.75rem;color:var(--text-muted);">📅 ' + d + '</span>'
+      + '<span style="font-size:0.72rem;color:var(--text-muted);">✍ ' + escHtml(o.aangemaaktDoor || 'Onbekend') + '</span>'
+      + (aantalDeelnemers > 0 ? '<span style="font-size:0.72rem;color:var(--accent);">👥 ' + aantalDeelnemers + ' deelnemer' + (aantalDeelnemers !== 1 ? 's' : '') + '</span>' : '')
+      + '</div>';
+  }).join('');
+}
+
+function selectOpleiding(id) {
+  actieveOpleidingId = id;
+  renderOpleidingView(id);
+  // Markeer actief in sidebar
+  renderOpleidingenLijst();
+}
+
+function renderOpleidingView(id) {
+  const o = state.opleidingen.find(x => x.id === id);
+  const container = document.getElementById('opleidingView');
+  const overdrachtenContainer = document.getElementById('overdrachtenContainer');
+  const zoekWrapper = document.getElementById('zoekbalkWrapper');
+  if (!o) { container.classList.add('hidden'); return; }
+
+  // Verberg persoonlijke overdrachten UI
+  overdrachtenContainer.innerHTML = '';
+  zoekWrapper.classList.add('hidden');
+  document.getElementById('zoekInfo').classList.add('hidden');
+
+  // Bepaal of ingelogde gebruiker mag bewerken
+  const magBewerken = huidigGebruiker && (
+    huidigGebruiker.admin ||
+    huidigGebruiker.superadmin ||
+    (o.opleiders && o.opleiders.includes(huidigGebruiker.naam))
+  );
+  // Mag verwijderen: aanmaker, admin of superadmin
+  const magVerwijderenOpleiding = huidigGebruiker && (
+    huidigGebruiker.admin ||
+    huidigGebruiker.superadmin ||
+    o.aangemaaktDoor === huidigGebruiker.naam
+  );
+
+  const d = o.datum ? new Date(o.datum).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}) : 'Geen datum';
+  const opleidersTags = (o.opleiders && o.opleiders.length > 0)
+    ? o.opleiders.map(n => '<span class="opleiding-tag">' + escHtml(n) + '</span>').join('')
+    : '<span style="color:var(--text-muted);font-style:italic;font-size:0.875rem;">Geen opleiders opgegeven</span>';
+  const deelnemersTags = (o.deelnemers && o.deelnemers.length > 0)
+    ? o.deelnemers.map(n => '<span class="opleiding-tag">' + escHtml(n) + '</span>').join('')
+    : '<span style="color:var(--text-muted);font-style:italic;font-size:0.875rem;">Geen deelnemers opgegeven</span>';
+
+  container.classList.remove('hidden');
+  container.innerHTML = '<div class="opleiding-view-card">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">'
+    + '<div>'
+    + '<div style="font-size:0.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">Opleiding</div>'
+    + '<div style="font-size:1.6rem;font-weight:700;color:var(--text);line-height:1;">' + escHtml(o.naam || 'Naamloos') + '</div>'
+    + '<div style="font-size:0.82rem;color:var(--text-muted);margin-top:6px;">📅 ' + d + '</div>'
+    + '<div style="font-size:0.82rem;color:var(--text-muted);margin-top:3px;">✍ Aangemaakt door: ' + escHtml(o.aangemaaktDoor || 'Onbekend') + '</div>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;">'
+    + (magBewerken ? '<button class="btn-secondary" style="font-size:0.75rem;padding:7px 16px;" onclick="openEditOpleiding(\'' + id + '\')">✏ Bewerken</button>' : '')
+    + (magVerwijderenOpleiding ? '<button class="btn-danger-outline" style="font-size:0.75rem;padding:7px 16px;" onclick="openVerwijderOpleiding(\'' + id + '\')">Verwijderen</button>' : '')
+    + '</div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-bottom:20px;">'
+    + '<div><div class="opleiding-view-label">Opleider(s)</div><div style="margin-top:4px;">' + opleidersTags + '</div></div>'
+    + '<div><div class="opleiding-view-label">Hoofd Assistent Leerling</div><div style="margin-top:4px;">' + (o.halLeerlingen && o.halLeerlingen.length > 0 ? o.halLeerlingen.map(n => '<span class="opleiding-tag">' + escHtml(n) + '</span>').join('') : '<span style="color:var(--text-muted);font-style:italic;font-size:0.875rem;">Geen</span>') + '</div></div>'
+    + '<div><div class="opleiding-view-label">Deelnemers (' + (o.deelnemers ? o.deelnemers.length : 0) + ')</div><div style="margin-top:4px;">' + deelnemersTags + '</div></div>'
+    + '</div>'
+    + '<div><div class="opleiding-view-label">Overdracht / notities</div>'
+    + (o.notes ? '<div class="opleiding-view-notes">' + escHtml(o.notes) + '</div>' : '<div class="opleiding-view-value leeg">Geen notities</div>')
+    + '</div>'
+    + '</div>';
+
+  // Update main header
+  document.getElementById('mainTitle').textContent = o.naam || 'Naamloos';
+  document.getElementById('mainSubtitle').textContent = 'Opleiding · ' + d;
+  document.getElementById('headerInfo2').textContent = '';
+  // Verberg persoonlijke knoppen
+  ['btnFunctieWijzigen','btnNaamWijzigen','btnVerwijderMedewerker','btnNieuweOverdracht'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+}
+
+function populateOpleidingNamenSelect(geselecteerd) {
+  const sel = document.getElementById('fOpleidingNaam');
+  sel.innerHTML = '<option value="">— Kies een opleiding —</option>'
+    + state.opleidingNamen.map(n => '<option value="' + escHtml(n) + '"' + (n === geselecteerd ? ' selected' : '') + '>' + escHtml(n) + '</option>').join('');
+}
+
+function openNieuweOpleidingNaam() {
+  document.getElementById('nieuweOpleidingNaamWrapper').style.display = 'block';
+  document.getElementById('fNieuweOpleidingNaam').value = '';
+  document.getElementById('opleidingNaamFout').style.display = 'none';
+  setTimeout(() => document.getElementById('fNieuweOpleidingNaam').focus(), 50);
+}
+
+function sluitNieuweOpleidingNaam() {
+  document.getElementById('nieuweOpleidingNaamWrapper').style.display = 'none';
+}
+
+function voegOpleidingNaamToe() {
+  const naam = document.getElementById('fNieuweOpleidingNaam').value.trim();
+  const fout = document.getElementById('opleidingNaamFout');
+  if (!naam) { alert('Vul een naam in.'); return; }
+  if (state.opleidingNamen.map(n => n.toLowerCase()).includes(naam.toLowerCase())) {
+    fout.style.display = 'block'; return;
+  }
+  fout.style.display = 'none';
+  state.opleidingNamen.push(naam);
+  save();
+  populateOpleidingNamenSelect(naam);
+  sluitNieuweOpleidingNaam();
+}
+
+function openAddOpleiding() {
+  actieveOpleidingId = null;
+  document.getElementById('modalOpleidingTitle').textContent = 'Opleiding toevoegen';
+  populateOpleidingNamenSelect('');
+  document.getElementById('fOpleidingDatum').value = new Date().toISOString().slice(0,10);
+  document.getElementById('fOpleidingNotes').value = '';
+  opleiderTellers = 0;
+  renderOpleiderVelden([]);
+  renderHALVelden([]);
+  renderDeelnemersCheckboxes([]);
+  const dz = document.getElementById('deelnemersZoek'); if(dz) dz.value = '';
+  const fo = document.getElementById('opleidingFouten'); if(fo) fo.style.display = 'none';
+  document.getElementById('modalOpleiding').classList.remove('hidden');
+  setTimeout(() => document.getElementById('fOpleidingNaam').focus(), 50);
+}
+
+function openEditOpleiding(id) {
+  const o = state.opleidingen.find(x => x.id === id);
+  if (!o) return;
+  actieveOpleidingId = id;
+  document.getElementById('modalOpleidingTitle').textContent = 'Opleiding bewerken';
+  populateOpleidingNamenSelect(o.naam || '');
+  document.getElementById('fOpleidingDatum').value = o.datum || '';
+  document.getElementById('fOpleidingNotes').value = o.notes || '';
+  opleiderTellers = 0;
+  renderOpleiderVelden(o.opleiders || []);
+  renderHALVelden(o.halLeerlingen || []);
+  renderDeelnemersCheckboxes(o.deelnemers || []);
+  const dz2 = document.getElementById('deelnemersZoek'); if(dz2) dz2.value = '';
+  document.getElementById('modalOpleiding').classList.remove('hidden');
+}
+
+let geselecteerdeOpleidersList = [];
+
+function toggleOpleidersDropdown() {
+  const dd = document.getElementById('opleidersDropdown');
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+
+function renderOpleiderVelden(bestaande) {
+  geselecteerdeOpleidersList = [...(bestaande || [])];
+  renderOpleidersCheckboxes();
+  renderGeselecteerdeOpleidersTags();
+  document.getElementById('fAndersOpleider').value = '';
+}
+
+function renderOpleidersCheckboxes() {
+  const container = document.getElementById('opleidersCheckboxes');
+  container.innerHTML = state.gebruikers.map(g => {
+    const checked = geselecteerdeOpleidersList.includes(g.naam);
+    return '<label style="display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;font-size:0.875rem;">'
+      + '<input type="checkbox" value="' + escHtml(g.naam) + '"' + (checked ? ' checked' : '') + ' style="accent-color:var(--accent);width:15px;height:15px;" onchange="opleiderCheckboxChanged(this)">'
+      + escHtml(g.naam) + '</label>';
+  }).join('');
+}
+
+function opleiderCheckboxChanged(cb) {
+  if (cb.checked) {
+    if (!geselecteerdeOpleidersList.includes(cb.value)) geselecteerdeOpleidersList.push(cb.value);
+  } else {
+    geselecteerdeOpleidersList = geselecteerdeOpleidersList.filter(n => n !== cb.value);
+  }
+  renderGeselecteerdeOpleidersTags();
+  updateOpleidersPlaceholder();
+}
+
+function voegAndersOpleiderToe() {
+  const naam = document.getElementById('fAndersOpleider').value.trim();
+  if (!naam) return;
+  if (!geselecteerdeOpleidersList.includes(naam)) {
+    geselecteerdeOpleidersList.push(naam);
+    renderGeselecteerdeOpleidersTags();
+    updateOpleidersPlaceholder();
+  }
+  document.getElementById('fAndersOpleider').value = '';
+}
+
+function verwijderOpleider(naam) {
+  geselecteerdeOpleidersList = geselecteerdeOpleidersList.filter(n => n !== naam);
+  renderOpleidersCheckboxes();
+  renderGeselecteerdeOpleidersTags();
+  updateOpleidersPlaceholder();
+}
+
+function renderGeselecteerdeOpleidersTags() {
+  const container = document.getElementById('geselecteerdeOpleiders');
+  container.innerHTML = '';
+  geselecteerdeOpleidersList.forEach(naam => {
+    const span = document.createElement('span');
+    span.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:var(--accent-light);color:var(--accent);border:1px solid var(--accent);font-size:0.78rem;font-weight:600;padding:3px 10px;';
+    const tekst = document.createTextNode(naam);
+    const btn = document.createElement('button');
+    btn.textContent = '✕';
+    btn.style.cssText = 'background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.85rem;padding:0;line-height:1;margin-left:4px;';
+    btn.onclick = (e) => { e.stopPropagation(); verwijderOpleider(naam); };
+    span.appendChild(tekst);
+    span.appendChild(btn);
+    container.appendChild(span);
+  });
+}
+
+function updateOpleidersPlaceholder() {
+  const el = document.getElementById('opleidersPlaceholder');
+  el.textContent = geselecteerdeOpleidersList.length > 0
+    ? geselecteerdeOpleidersList.join(', ')
+    : '— Kies opleider(s) —';
+}
+
+function getOpleiders() {
+  return [...geselecteerdeOpleidersList];
+}
+
+let halGeselecteerdLijst = [];
+
+function filterHAL() {
+  const q = document.getElementById('halZoek').value.toLowerCase().trim();
+  const suggesties = document.getElementById('halSuggesties');
+  if (!q) { suggesties.style.display = 'none'; return; }
+  const matches = state.collega.filter(c =>
+    c.naam.toLowerCase().includes(q) && !halGeselecteerdLijst.includes(c.naam)
+  );
+  if (matches.length === 0) { suggesties.style.display = 'none'; return; }
+  suggesties.innerHTML = '';
+  matches.forEach(c => {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:7px 12px;cursor:pointer;font-size:0.875rem;';
+    div.textContent = c.naam + ' (' + (c.functie||'') + ')';
+    div.onmousedown = (e) => { e.preventDefault(); selecteerHAL(c.naam); };
+    div.onmouseover = () => div.style.background = 'var(--surface2)';
+    div.onmouseout  = () => div.style.background = '';
+    suggesties.appendChild(div);
+  });
+  suggesties.style.display = 'block';
+}
+
+function selecteerHAL(naam) {
+  if (!halGeselecteerdLijst.includes(naam)) halGeselecteerdLijst.push(naam);
+  document.getElementById('halZoek').value = '';
+  document.getElementById('halSuggesties').style.display = 'none';
+  renderHALTags();
+}
+
+function verwijderHAL(naam) {
+  halGeselecteerdLijst = halGeselecteerdLijst.filter(n => n !== naam);
+  renderHALTags();
+}
+
+function renderHALTags() {
+  const container = document.getElementById('halGeselecteerd');
+  container.innerHTML = '';
+  halGeselecteerdLijst.forEach(naam => {
+    const span = document.createElement('span');
+    span.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:var(--accent-light);color:var(--accent);border:1px solid var(--accent);font-size:0.78rem;font-weight:600;padding:3px 10px;';
+    span.appendChild(document.createTextNode(naam));
+    const btn = document.createElement('button');
+    btn.textContent = '✕';
+    btn.style.cssText = 'background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.85rem;padding:0;margin-left:4px;line-height:1;';
+    btn.onclick = () => verwijderHAL(naam);
+    span.appendChild(btn);
+    container.appendChild(span);
+  });
+}
+
+function renderHALVelden(bestaande) {
+  halGeselecteerdLijst = [...(bestaande || [])];
+  renderHALTags();
+  document.getElementById('halZoek').value = '';
+  document.getElementById('halSuggesties').style.display = 'none';
+}
+
+function getHAL() { return [...halGeselecteerdLijst]; }
+
+// Sluit suggesties als je erbuiten klikt
+document.addEventListener('click', e => {
+  const zoek = document.getElementById('halZoek');
+  const sug = document.getElementById('halSuggesties');
+  if (zoek && sug && !zoek.contains(e.target) && !sug.contains(e.target)) sug.style.display = 'none';
+});
+
+function filterDeelnemers() {
+  const q = document.getElementById('deelnemersZoek').value.toLowerCase().trim();
+  document.querySelectorAll('#deelnemersList label').forEach(label => {
+    const naam = label.textContent.toLowerCase();
+    label.style.display = naam.includes(q) ? '' : 'none';
+  });
+}
+
+function renderDeelnemersCheckboxes(geselecteerd) {
+  const container = document.getElementById('deelnemersList');
+  if (state.collega.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem;padding:4px;">Geen collega\'s beschikbaar.</div>';
+    return;
+  }
+  container.innerHTML = state.collega.map(c => {
+    const checked = geselecteerd.includes(c.naam) ? 'checked' : '';
+    return '<label style="display:flex;align-items:center;gap:8px;padding:5px 4px;cursor:pointer;font-size:0.875rem;">'
+      + '<input type="checkbox" value="' + escHtml(c.naam) + '" ' + checked + ' style="accent-color:var(--accent);width:15px;height:15px;">'
+      + escHtml(c.naam)
+      + '<span style="font-size:0.72rem;color:var(--text-muted);margin-left:2px;">(' + escHtml(c.functie||'') + ')</span>'
+      + '</label>';
+  }).join('');
+}
+
+function getDeelnemers() {
+  return Array.from(document.querySelectorAll('#deelnemersList input[type=checkbox]:checked')).map(cb => cb.value);
+}
+
+function saveOpleiding() {
+  const naam = document.getElementById('fOpleidingNaam').value.trim();
+  const datum = document.getElementById('fOpleidingDatum').value;
+  const opleiders = getOpleiders();
+  const deelnemers = getDeelnemers();
+  const notes = document.getElementById('fOpleidingNotes').value.trim();
+  const errors = [];
+  if (!naam) errors.push('• Kies of voeg een opleidingsnaam toe.');
+  if (!datum) errors.push('• Voer een datum in.');
+  if (opleiders.length === 0) errors.push('• Voeg minimaal één opleider toe.');
+  if (deelnemers.length === 0) errors.push('• Selecteer minimaal één deelnemer.');
+  if (!notes) errors.push('• Schrijf een overdracht in het tekstvak.');
+  const foutenEl = document.getElementById('opleidingFouten');
+  if (errors.length > 0) {
+    foutenEl.innerHTML = errors.join('<br>');
+    foutenEl.style.display = 'block';
+    return;
+  }
+  foutenEl.style.display = 'none';
+  const data = {
+    naam,
+    datum:      document.getElementById('fOpleidingDatum').value,
+    opleiders:  getOpleiders(),
+    halLeerlingen: getHAL(),
+    deelnemers: getDeelnemers(),
+    notes:      document.getElementById('fOpleidingNotes').value.trim(),
+  };
+  if (actieveOpleidingId) {
+    const idx = state.opleidingen.findIndex(x => x.id === actieveOpleidingId);
+    if (idx > -1) state.opleidingen[idx] = { ...state.opleidingen[idx], ...data };
+  } else {
+    state.opleidingen.push({ id: uid(), aangemaaktOp: Date.now(), aangemaaktDoor: huidigGebruiker ? huidigGebruiker.naam : '—', ...data });
+  }
+  save();
+  closeModal('modalOpleiding');
+  renderOpleidingenLijst();
+  if (actieveOpleidingId) renderOpleidingView(actieveOpleidingId);
+}
+
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+document.querySelectorAll('.modal-backdrop').forEach(bd => { bd.addEventListener('click', e => { if(e.target===bd) bd.classList.add('hidden'); }); });
+document.getElementById('fCollegaNaam').addEventListener('keydown', e => { if(e.key==='Enter') saveCollega(); });
+document.getElementById('fNieuweOpleidingNaam').addEventListener('keydown', e => { if(e.key==='Enter') voegOpleidingNaamToe(); });
+document.getElementById('fBeheerNieuweNaam').addEventListener('keydown', e => { if(e.key==='Enter') beheerVoegOpleidingToe(); });
+document.getElementById('fNieuweNaam').addEventListener('keydown', e => { if(e.key==='Enter') saveNaamWijziging(); });
+document.getElementById('fAdminWachtwoord').addEventListener('keydown', e => { if(e.key==='Enter') activeerAdminMode(); });
+document.getElementById('fPMNaam').addEventListener('keydown', e => { if(e.key==='Enter') savePM(); });
+
+// ── THEME ──────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-mode');
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  updateThemeIcons();
+}
+
+function updateThemeIcons() {
+  const isLight = document.body.classList.contains('light-mode');
+  const icon = isLight ? '☀️' : '🌙';
+  ['btnTheme','btnThemeLogin'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = icon;
+  });
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') document.body.classList.add('light-mode');
+  updateThemeIcons();
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+
+function closeSidebarOnMobile() {
+  if (window.innerWidth <= 768) {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  }
+}
+
+document.addEventListener('click', e => {
+  const wrapper = document.getElementById('opleidersDropdownWrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    const dd = document.getElementById('opleidersDropdown');
+    if (dd) dd.style.display = 'none';
+  }
+});
+// Bij reload: reset admin rechten voor iedereen (veiligheid)
+// Gebruikers moeten opnieuw inloggen en Admin Mode activeren
+function resetAdminBijReload() {
+  state.gebruikers.forEach(g => {
+    if (!g.vasteBeheerder) g.admin = false;
+  });
+  save();
+}
+
+load();
+resetAdminBijReload();
+initTheme();
+initLoginScherm();
+</script>
+</body>
+</html>
