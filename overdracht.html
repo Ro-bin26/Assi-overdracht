@@ -530,6 +530,8 @@
       <button class="btn-admin-mode hidden" id="btnAdminMode" onclick="openAdminMode()">Admin Mode</button>
       <button class="btn-gebruikers hidden" id="btnGebruikersBeheer" onclick="openGebruikersBeheer()">Gebruikers</button>
       <button class="btn-theme" id="btnTheme" onclick="toggleTheme()" title="Wissel weergave">🌙</button>
+      <button class="btn-logout" onclick="exportData()" title="Exporteer alle data als JSON bestand" style="margin-right:4px;">↓ Export</button>
+      <label class="btn-logout" title="Importeer data uit JSON bestand" style="margin-right:4px;cursor:pointer;">↑ Import<input type="file" accept=".json" onchange="importData(event)" style="display:none;" /></label>
       <button class="btn-logout" onclick="openInstellingen()" style="margin-right:4px;font-size:1.1rem;padding:0 10px;">⚙</button>
       <button class="btn-logout" onclick="logout()">Uitloggen</button>
     </div>
@@ -855,6 +857,28 @@
     <!-- Footer -->
     <div style="padding:14px 32px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;flex-shrink:0;">
       <button class="btn-primary" onclick="closeModal('modalInstellingen')">Sluiten</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Import melding bij inloggen -->
+<div class="modal-backdrop hidden" id="modalImportMelding">
+  <div class="modal" style="max-width:440px;text-align:center;">
+    <div style="font-size:2rem;margin-bottom:12px;">📥</div>
+    <div class="modal-title" style="margin-bottom:8px;">Wil je eerst importeren?</div>
+    <p style="font-size:0.875rem;color:var(--text-muted);line-height:1.7;margin-bottom:20px;">
+      Om te werken met de meest recente data van je collega's, is het aan te raden om eerst het laatste exportbestand te importeren vanuit de gedeelde SharePoint map.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <label style="cursor:pointer;">
+        <div class="btn-primary" style="width:100%;justify-content:center;font-size:0.85rem;padding:12px 20px;box-sizing:border-box;">
+          ↑ Ja, importeer nu
+        </div>
+        <input type="file" accept=".json" onchange="importDataVanMelding(event)" style="display:none;" />
+      </label>
+      <button class="btn-secondary" onclick="closeModal('modalImportMelding')" style="width:100%;justify-content:center;font-size:0.85rem;padding:11px 20px;">
+        Nee, ga door zonder importeren
+      </button>
     </div>
   </div>
 </div>
@@ -1242,12 +1266,12 @@ const ALGEMEEN_WACHTWOORD = 'ASOEMG2026';
 let SUPERBEHEERDER_NAAM = 'Robin van Braam'; // Naam van de eindverantwoordelijke - wordt bijgehouden
 
 const STANDAARD_GEBRUIKERS = [
-  { naam: 'Robin', admin: false, superadmin: true },
-  { naam: 'Wesley', admin: false },
-  { naam: 'Quincy', admin: false },
-  { naam: 'Bart', admin: false },
-  { naam: 'Cheyenne', admin: false },
-  { naam: 'Menno', admin: false },
+  { naam: 'Robin van Braam', admin: false, superadmin: true },
+  { naam: 'Wesley van Hooft', admin: false },
+  { naam: 'Quincy Disselkoter', admin: false },
+  { naam: 'Bart de Greef', admin: false },
+  { naam: 'Cheyenne Broerze', admin: false },
+  { naam: 'Menno Aalpol', admin: false },
 ];
 
 const FUNCTIES = ['Assistent', 'Technisch Assistent', 'Hoofd Assistent', 'Stagiair'];
@@ -1307,6 +1331,7 @@ function save() {
       opleidingNamen:  state.opleidingNamen,
     };
     localStorage.setItem('overdracht_data', JSON.stringify(data));
+    if (huidigGebruiker) resetExportTimer(); // Houd bij dat er wijzigingen zijn gemaakt
     // Sla ook op naar SharePoint als verbonden
     if (spToken && spSiteId && isOnline) {
       toonSyncStatus('Opslaan…', 'oranje');
@@ -1364,11 +1389,17 @@ function login() {
   }
   resetAutoLogoutTimer();
   renderSidebar(); renderMain();
+  // Toon import melding na kort moment zodat de UI eerst geladen is
+  setTimeout(() => toonImportMelding(), 400);
 }
 
 function logout() {
   if (autoLogoutTimer) clearTimeout(autoLogoutTimer);
   if (autoLogoutCountdownTimer) clearInterval(autoLogoutCountdownTimer);
+  if (exportWaarschuwingTimer) clearTimeout(exportWaarschuwingTimer);
+  wijzigingenSindsExport = 0;
+  const logoutBalk = document.getElementById('exportWaarschuwingBalk');
+  if (logoutBalk) logoutBalk.style.display = 'none';
   huidigGebruiker = null;
   actieveCollegaId = null;
   actieveOpleidingId = null;
@@ -1737,6 +1768,161 @@ function openInstellingen() {
 ['click','keydown','mousemove','touchstart','scroll'].forEach(event => {
   document.addEventListener(event, () => { if (huidigGebruiker && autoLogoutSeconds > 0) resetAutoLogoutTimer(); }, { passive: true });
 });
+
+// ── IMPORT / EXPORT ───────────────────────────────────────────────────────
+let exportWaarschuwingTimer = null;
+let wijzigingenSindsExport = 0;
+const EXPORT_WAARSCHUWING_MINUTEN = 5; // Waarschuw na 5 minuten zonder export
+
+function resetExportTimer() {
+  wijzigingenSindsExport++;
+  if (exportWaarschuwingTimer) clearTimeout(exportWaarschuwingTimer);
+  // Verberg eventuele bestaande waarschuwing
+  const bestaande = document.getElementById('exportWaarschuwingBalk');
+  if (bestaande) bestaande.style.display = 'none';
+  // Stel nieuwe timer in
+  exportWaarschuwingTimer = setTimeout(() => {
+    toonExportWaarschuwing();
+  }, EXPORT_WAARSCHUWING_MINUTEN * 60 * 1000);
+}
+
+function toonExportWaarschuwing() {
+  let balk = document.getElementById('exportWaarschuwingBalk');
+  if (!balk) {
+    balk = document.createElement('div');
+    balk.id = 'exportWaarschuwingBalk';
+    balk.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:rgba(240,165,0,0.95);color:#000;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;z-index:9999;font-size:0.85rem;font-weight:600;font-family:inherit;';
+    // Bouw balk content via DOM
+    const balkTekst = document.createElement('span');
+    balkTekst.id = 'exportWaarschuwingTekst';
+    balkTekst.textContent = '⚠ Je hebt ' + wijzigingenSindsExport + ' wijziging' + (wijzigingenSindsExport !== 1 ? 'en' : '') + ' gemaakt zonder te exporteren. Vergeet niet je data te exporteren en op te slaan in SharePoint!';
+    const balkBtns = document.createElement('div');
+    balkBtns.style.cssText = 'display:flex;gap:8px;flex-shrink:0;';
+    const btnExportNu = document.createElement('button');
+    btnExportNu.textContent = '↓ Nu exporteren';
+    btnExportNu.style.cssText = 'background:#000;color:#f0a500;border:none;padding:6px 14px;font-weight:700;cursor:pointer;font-family:inherit;';
+    btnExportNu.onclick = function() { exportData(); balk.style.display = 'none'; };
+    const btnLater = document.createElement('button');
+    btnLater.textContent = 'Later';
+    btnLater.style.cssText = 'background:none;border:1px solid #000;padding:6px 14px;font-weight:600;cursor:pointer;font-family:inherit;';
+    btnLater.onclick = function() { balk.style.display = 'none'; };
+    balkBtns.appendChild(btnExportNu);
+    balkBtns.appendChild(btnLater);
+    balk.appendChild(balkTekst);
+    balk.appendChild(balkBtns);
+    document.body.appendChild(balk);
+  } else {
+    const tekst = document.getElementById('exportWaarschuwingTekst');
+    if (tekst) tekst.textContent = '⚠ Je hebt ' + wijzigingenSindsExport + ' wijziging' + (wijzigingenSindsExport !== 1 ? 'en' : '') + ' gemaakt zonder te exporteren. Vergeet niet je data te exporteren en op te slaan in SharePoint!';
+    balk.style.display = 'flex';
+  }
+}
+
+
+function resetNaarStandaard() {
+  if (!confirm('Weet je zeker dat je wilt resetten naar de standaard gebruikersnamen?\n\nAlle opgeslagen data (collega\'s, overdrachten, opleidingen) blijft bewaard. Alleen de gebruikersnamen worden teruggezet.')) return;
+  state.gebruikers = STANDAARD_GEBRUIKERS.map(g => ({...g}));
+  save();
+  initLoginScherm();
+  alert('✓ Gebruikersnamen zijn teruggezet naar de standaard namen.');
+}
+
+function toonImportMelding() {
+  document.getElementById('modalImportMelding').classList.remove('hidden');
+}
+
+function importDataVanMelding(event) {
+  closeModal('modalImportMelding');
+  importData(event);
+}
+
+function exportData() {
+  const data = {
+    exportDatum: new Date().toISOString(),
+    exportDoor:  huidigGebruiker ? huidigGebruiker.naam : 'Onbekend',
+    versie:      '1.0',
+    collega:         state.collega,
+    projectmanagers: state.projectmanagers,
+    overdrachten:    state.overdrachten,
+    gebruikers:      state.gebruikers,
+    opleidingen:     state.opleidingen,
+    opleidingNamen:  state.opleidingNamen,
+  };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], {type: 'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const datum = new Date().toLocaleDateString('nl-NL').replace(/\//g, '-');
+  a.href     = url;
+  a.download = 'overdracht-data-' + datum + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  // Reset teller en timer na export
+  wijzigingenSindsExport = 0;
+  if (exportWaarschuwingTimer) clearTimeout(exportWaarschuwingTimer);
+  const balk = document.getElementById('exportWaarschuwingBalk');
+  if (balk) balk.style.display = 'none';
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      // Valideer dat het een geldig exportbestand is
+      if (!data.versie || !data.collega) {
+        alert('Ongeldig bestand. Zorg dat je een exportbestand van deze website gebruikt.');
+        event.target.value = '';
+        return;
+      }
+      const exportDoor  = data.exportDoor || 'Onbekend';
+      const exportDatum = data.exportDatum ? new Date(data.exportDatum).toLocaleString('nl-NL') : 'Onbekend';
+      if (!confirm(
+        'Weet je zeker dat je deze data wilt importeren?\n\n' +
+        'Geëxporteerd door: ' + exportDoor + '\n' +
+        'Datum: ' + exportDatum + '\n\n' +
+        'Je huidige data wordt overschreven. Dit kan niet ongedaan worden gemaakt.'
+      )) {
+        event.target.value = '';
+        return;
+      }
+      // Importeer alle velden
+      if (Array.isArray(data.collega))         state.collega         = data.collega;
+      if (Array.isArray(data.projectmanagers)) state.projectmanagers = data.projectmanagers;
+      if (Array.isArray(data.overdrachten))    state.overdrachten    = data.overdrachten;
+      if (Array.isArray(data.opleidingen))     state.opleidingen     = data.opleidingen;
+      if (Array.isArray(data.opleidingNamen))  state.opleidingNamen  = data.opleidingNamen;
+      // Gebruikers importeren maar superadmin vlag beschermen
+      if (Array.isArray(data.gebruikers)) {
+        state.gebruikers = data.gebruikers;
+        // Herstel superadmin vlag
+        STANDAARD_GEBRUIKERS.forEach((standaard, i) => {
+          if (standaard.superadmin && state.gebruikers[i]) {
+            state.gebruikers[i].superadmin = true;
+          }
+        });
+      }
+      save();
+      wijzigingenSindsExport = 0;
+      if (exportWaarschuwingTimer) clearTimeout(exportWaarschuwingTimer);
+      const importBalk = document.getElementById('exportWaarschuwingBalk');
+      if (importBalk) importBalk.style.display = 'none';
+      renderSidebar();
+      renderMain();
+      event.target.value = '';
+      // Toon bevestiging
+      alert('✓ Data succesvol geïmporteerd!\n\nGeïmporteerd van: ' + exportDoor + '\nDatum export: ' + exportDatum);
+    } catch(err) {
+      alert('Fout bij het importeren: het bestand is beschadigd of ongeldig.');
+      event.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
 
 function openAdminMode() {
   if (huidigGebruiker && huidigGebruiker.admin) {
