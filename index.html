@@ -102,28 +102,32 @@
     }
     .btn-admin-mode {
       background: transparent; color: var(--accent); border: 1px solid var(--accent);
-      padding: 5px 14px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
+      padding: 0 14px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
       text-transform: uppercase; cursor: pointer; font-family: inherit;
-      transition: all 0.15s;
+      transition: all 0.15s; height: 32px; box-sizing: border-box;
+      display: inline-flex; align-items: center;
     }
     .btn-admin-mode:hover { background: var(--accent); color: #fff; }
     .btn-admin-mode.active { background: var(--success); border-color: var(--success); color: #fff; }
     .btn-gebruikers {
       background: transparent; color: var(--text-muted); border: 1px solid var(--border);
-      padding: 5px 14px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px;
+      padding: 0 14px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px;
       text-transform: uppercase; cursor: pointer; font-family: inherit; transition: all 0.15s;
+      height: 32px; box-sizing: border-box; display: inline-flex; align-items: center;
     }
     .btn-gebruikers:hover { border-color: var(--text-muted); color: var(--text); }
     .btn-theme {
       background: transparent; border: 1px solid var(--border); color: var(--text-muted);
-      width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
       cursor: pointer; font-size: 1rem; transition: all 0.15s; flex-shrink: 0;
+      box-sizing: border-box;
     }
     .btn-theme:hover { border-color: var(--accent); color: var(--accent); }
     .btn-logout {
       background: transparent; color: var(--text-muted); border: 1px solid var(--border);
-      padding: 5px 14px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px;
+      padding: 0 14px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px;
       text-transform: uppercase; cursor: pointer; font-family: inherit; transition: all 0.15s;
+      height: 32px; box-sizing: border-box; display: inline-flex; align-items: center;
     }
     .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 
@@ -239,12 +243,14 @@
       font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex;
       align-items: center; gap: 8px; transition: background 0.15s;
       font-family: inherit; white-space: nowrap; letter-spacing: 1px; text-transform: uppercase;
+      height: 36px; box-sizing: border-box;
     }
     .btn-primary:hover { background: var(--accent-hover); }
     .btn-secondary {
       background: transparent; color: var(--text); border: 1px solid var(--border);
       padding: 9px 16px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
       font-family: inherit; transition: all 0.15s; letter-spacing: 0.5px; text-transform: uppercase;
+      height: 36px; box-sizing: border-box; display: inline-flex; align-items: center;
     }
     .btn-secondary:hover { border-color: var(--text-muted); }
     .btn-danger-outline {
@@ -252,6 +258,7 @@
       padding: 9px 16px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
       font-family: inherit; transition: all 0.15s; white-space: nowrap;
       letter-spacing: 0.5px; text-transform: uppercase;
+      height: 36px; box-sizing: border-box; display: inline-flex; align-items: center;
     }
     .btn-danger-outline:hover { background: rgba(232,64,64,0.1); }
     .btn-danger {
@@ -418,9 +425,13 @@
       .main-title { font-size: 1.4rem; }
       .main-subtitle { font-size: 0.75rem; }
 
-      .btn-primary { font-size: 0.72rem; padding: 9px 14px; }
-      .btn-secondary { font-size: 0.72rem; padding: 7px 10px; }
-      .btn-danger-outline { font-size: 0.68rem; padding: 7px 10px; }
+      .btn-primary { font-size: 0.72rem; padding: 8px 12px; }
+      .btn-secondary { font-size: 0.72rem; padding: 8px 12px; }
+      .btn-danger-outline { font-size: 0.72rem; padding: 8px 12px; }
+      .btn-admin-mode { font-size: 0.72rem; padding: 8px 12px; }
+      .btn-logout { font-size: 0.72rem; padding: 8px 12px; }
+      .btn-gebruikers { font-size: 0.72rem; padding: 8px 12px; }
+      .btn-theme { width: 34px; height: 34px; font-size: 0.9rem; }
 
       .card { padding: 16px; }
       .card-fields { grid-template-columns: 1fr 1fr; }
@@ -513,11 +524,13 @@
     </div>
     <div class="header-user">
       <div id="headerInfo" style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;"></div>
+      <div id="syncStatusBar" style="display:none;font-size:0.72rem;font-weight:600;align-items:center;gap:4px;"></div>
       <span class="header-naam" id="headerNaam"></span>
       <span class="badge-admin hidden" id="headerAdminBadge">Admin</span>
       <button class="btn-admin-mode hidden" id="btnAdminMode" onclick="openAdminMode()">Admin Mode</button>
       <button class="btn-gebruikers hidden" id="btnGebruikersBeheer" onclick="openGebruikersBeheer()">Gebruikers</button>
       <button class="btn-theme" id="btnTheme" onclick="toggleTheme()" title="Wissel weergave">🌙</button>
+      <button class="btn-logout" onclick="openInstellingen()" style="margin-right:4px;font-size:1.1rem;padding:0 10px;">⚙</button>
       <button class="btn-logout" onclick="logout()">Uitloggen</button>
     </div>
   </header>
@@ -562,12 +575,12 @@
         </div>
         <div style="display:flex;gap:8px;align-items:center;">
           <div id="headerInfo2" style="font-size:0.78rem;color:var(--text-muted);align-self:center;"></div>
-          <button class="btn-secondary hidden" id="btnFunctieWijzigen" onclick="openWijzigFunctie()" style="font-size:0.7rem;padding:6px 10px;">Functie wijzigen</button>
-          <button class="btn-secondary hidden" id="btnFilterOpleidingen" onclick="toggleOpleidingFilter()" style="font-size:0.7rem;padding:6px 10px;">Opleidingen</button>
-          <button class="btn-secondary hidden" id="btnNaamWijzigen" onclick="openWijzigNaam()" style="font-size:0.7rem;padding:6px 10px;">Naam wijzigen</button>
-          <button class="btn-danger-outline hidden" id="btnVerwijderMedewerker" onclick="openVerwijderMedewerker()" style="font-size:0.7rem;padding:6px 10px;align-self:stretch;">Verwijderen</button>
+          <button class="btn-secondary hidden" id="btnFunctieWijzigen" onclick="openWijzigFunctie()" >Functie wijzigen</button>
+          <button class="btn-secondary hidden" id="btnFilterOpleidingen" onclick="toggleOpleidingFilter()" >Opleidingen</button>
+          <button class="btn-secondary hidden" id="btnNaamWijzigen" onclick="openWijzigNaam()" >Naam wijzigen</button>
+          <button class="btn-danger-outline hidden" id="btnVerwijderMedewerker" onclick="openVerwijderMedewerker()" >Verwijderen</button>
           <button class="btn-primary hidden" id="btnNieuweOverdracht" onclick="openNieuweOverdracht()">+ Nieuwe overdracht</button>
-          <button class="btn-secondary hidden" id="btnBeheerOpleidingNamen" onclick="openBeheerOpleidingNamen()" style="font-size:0.8rem;padding:9px 16px;">⚙ Opleidingen beheren</button>
+          <button class="btn-secondary hidden" id="btnBeheerOpleidingNamen" onclick="openBeheerOpleidingNamen()" >⚙ Opleidingen beheren</button>
         </div>
       </div>
       <div class="zoekbalk-wrapper hidden" id="zoekbalkWrapper">
@@ -796,6 +809,56 @@
   </div>
 </div>
 
+<!-- MODAL: Instellingen -->
+<div class="modal-backdrop hidden" id="modalInstellingen">
+  <div class="modal" style="max-width:620px;padding:0;display:flex;flex-direction:column;max-height:90vh;">
+    <div style="padding:28px 32px 0;flex-shrink:0;">
+      <div class="modal-title" style="margin-bottom:0;">Instellingen</div>
+    </div>
+    <!-- Tabbladen -->
+    <div style="display:flex;border-bottom:1px solid var(--border);padding:0 32px;flex-shrink:0;margin-top:16px;">
+      <button class="inst-tab active" id="instTab1" onclick="switchInstTab('inactiviteit')" style="padding:10px 16px;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);cursor:pointer;font-family:inherit;">Inactiviteit</button>
+      <button class="inst-tab" id="instTab2" onclick="switchInstTab('dropdowns')" style="padding:10px 16px;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;font-family:inherit;">Drop-downs aanpassen</button>
+    </div>
+    <!-- Tab: Inactiviteit -->
+    <div id="instPanelInactiviteit" style="padding:24px 32px;overflow-y:auto;flex:1;">
+      <div class="form-row">
+        <label class="form-label">Automatisch uitloggen na inactiviteit</label>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="autoLogout" value="30" style="accent-color:var(--accent);" onchange="slaAutoLogoutOp(this.value)" /> 30 seconden</label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="autoLogout" value="60" style="accent-color:var(--accent);" onchange="slaAutoLogoutOp(this.value)" /> 1 minuut</label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="autoLogout" value="120" style="accent-color:var(--accent);" onchange="slaAutoLogoutOp(this.value)" /> 2 minuten</label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="autoLogout" value="0" style="accent-color:var(--accent);" onchange="slaAutoLogoutOp(this.value)" /> Nooit automatisch uitloggen</label>
+        </div>
+      </div>
+      <div id="autoLogoutCountdown" style="display:none;margin-top:8px;font-size:0.8rem;color:var(--text-muted);"></div>
+    </div>
+    <!-- Tab: Drop-downs aanpassen -->
+    <div id="instPanelDropdowns" style="display:none;padding:24px 32px;overflow-y:auto;flex:1;">
+      <div class="form-row">
+        <label class="form-label">Kies een lijst om aan te passen</label>
+        <select class="form-select" id="ddListKeuze" onchange="laadDdLijst()" style="margin-top:6px;">
+          <option value="">— Kies een lijst —</option>
+          <option value="projectmanagers">Projectmanagers</option>
+          <option value="opleidingNamen">Opleidingsnamen</option>
+        </select>
+      </div>
+      <div id="ddLijstContainer" style="display:none;">
+        <div style="display:flex;align-items:center;border:1px solid var(--border);margin-bottom:8px;overflow:hidden;">
+          <input class="form-input" id="ddNieuwItem" placeholder="Nieuw item toevoegen…" style="flex:1;border:none;background:var(--surface2);" />
+          <button class="btn-primary" style="padding:10px 18px;border-radius:0;flex-shrink:0;" onclick="ddVoegToe()">+</button>
+        </div>
+        <div id="ddFout" style="display:none;color:var(--danger);font-size:0.78rem;margin-bottom:8px;font-weight:500;"></div>
+        <div id="ddItems" style="border:1px solid var(--border);max-height:300px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div style="padding:14px 32px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;flex-shrink:0;">
+      <button class="btn-primary" onclick="closeModal('modalInstellingen')">Sluiten</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Opleidingen beheren -->
 <div class="modal-backdrop hidden" id="modalBeheerOpleidingNamen">
   <div class="modal">
@@ -903,6 +966,278 @@
 </div>
 
 <script>
+// ══════════════════════════════════════════════════════════════════════════
+// SHAREPOINT CONFIGURATIE — VOEL HIER ALLEEN DEZE 4 WAARDEN IN
+// Vraag je IT-afdeling om een Azure App Registration aan te maken
+// ══════════════════════════════════════════════════════════════════════════
+const SP_CONFIG = {
+  tenantId:     'VOEL_HIER_JE_TENANT_ID_IN',
+  clientId:     'VOEL_HIER_JE_CLIENT_ID_IN',
+  clientSecret: 'VOEL_HIER_JE_CLIENT_SECRET_IN',
+  siteUrl:      'https://JOUWBEDRIJF.sharepoint.com/sites/JOUWSITE',
+};
+// ══════════════════════════════════════════════════════════════════════════
+
+// SharePoint List namen (worden automatisch aangemaakt als ze niet bestaan)
+const SP_LISTS = {
+  collega:        'OA_Collega',
+  overdrachten:   'OA_Overdrachten',
+  projectmanagers:'OA_Projectmanagers',
+  opleidingen:    'OA_Opleidingen',
+  opleidingNamen: 'OA_OpleidingNamen',
+  gebruikers:     'OA_Gebruikers',
+};
+
+let spToken = null;
+let spSiteId = null;
+let syncInterval = null;
+let offlineWachtrij = []; // Wijzigingen die offline zijn gemaakt
+let isOnline = navigator.onLine;
+
+// Luister naar online/offline events
+window.addEventListener('online', async () => {
+  isOnline = true;
+  toonSyncStatus('Verbinding hersteld, synchroniseren…', 'oranje');
+  const token = await getToken();
+  if (token && offlineWachtrij.length > 0) {
+    // Verwerk alle offline wijzigingen
+    await syncOfflineWachtrij();
+  } else if (token) {
+    await laadVanSharePoint();
+    toonSyncStatus('● Live gesynchroniseerd', 'groen');
+  }
+});
+
+window.addEventListener('offline', () => {
+  isOnline = false;
+  toonSyncStatus('Offline — wijzigingen lokaal opgeslagen', 'grijs');
+});
+
+async function syncOfflineWachtrij() {
+  if (offlineWachtrij.length === 0) return;
+  toonSyncStatus('Offline wijzigingen synchroniseren (' + offlineWachtrij.length + ')…', 'oranje');
+  try {
+    // Sla de volledige huidige state op naar SharePoint
+    await Promise.all([
+      slaOpNaarSharePoint('collega', state.collega),
+      slaOpNaarSharePoint('overdrachten', state.overdrachten),
+      slaOpNaarSharePoint('projectmanagers', state.projectmanagers.map((p,i) => ({id:'pm'+i, naam:p.naam, inDienst:p.inDienst}))),
+      slaOpNaarSharePoint('opleidingen', state.opleidingen),
+      slaOpNaarSharePoint('opleidingNamen', state.opleidingNamen.map((n,i) => ({id:'on'+i, naam:n}))),
+      slaOpNaarSharePoint('gebruikers', state.gebruikers),
+    ]);
+    offlineWachtrij = [];
+    localStorage.removeItem('offlineWachtrij');
+    toonSyncStatus('● Live gesynchroniseerd', 'groen');
+  } catch(e) {
+    toonSyncStatus('Sync fout — probeer het later opnieuw', 'rood');
+  }
+}
+
+// ── GRAPH API HELPERS ─────────────────────────────────────────────────────
+async function getToken() {
+  try {
+    const resp = await fetch(
+      'https://login.microsoftonline.com/' + SP_CONFIG.tenantId + '/oauth2/v2.0/token',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type:    'client_credentials',
+          client_id:     SP_CONFIG.clientId,
+          client_secret: SP_CONFIG.clientSecret,
+          scope:         'https://graph.microsoft.com/.default',
+        })
+      }
+    );
+    const data = await resp.json();
+    spToken = data.access_token;
+    return spToken;
+  } catch(e) {
+    console.warn('Token ophalen mislukt, gebruik localStorage:', e);
+    return null;
+  }
+}
+
+async function graphGet(url) {
+  if (!spToken) await getToken();
+  if (!spToken) return null;
+  const resp = await fetch('https://graph.microsoft.com/v1.0' + url, {
+    headers: { Authorization: 'Bearer ' + spToken }
+  });
+  if (!resp.ok) return null;
+  return resp.json();
+}
+
+async function graphPost(url, body) {
+  if (!spToken) await getToken();
+  if (!spToken) return null;
+  const resp = await fetch('https://graph.microsoft.com/v1.0' + url, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + spToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!resp.ok) return null;
+  return resp.json();
+}
+
+async function graphPatch(url, body) {
+  if (!spToken) await getToken();
+  if (!spToken) return null;
+  await fetch('https://graph.microsoft.com/v1.0' + url, {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer ' + spToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+async function graphDelete(url) {
+  if (!spToken) await getToken();
+  if (!spToken) return;
+  await fetch('https://graph.microsoft.com/v1.0' + url, {
+    method: 'DELETE',
+    headers: { Authorization: 'Bearer ' + spToken }
+  });
+}
+
+async function getSiteId() {
+  if (spSiteId) return spSiteId;
+  const hostname = SP_CONFIG.siteUrl.replace('https://', '').split('/')[0];
+  const sitePath = '/' + SP_CONFIG.siteUrl.replace('https://', '').split('/').slice(1).join('/');
+  const data = await graphGet('/sites/' + hostname + ':' + sitePath);
+  spSiteId = data ? data.id : null;
+  return spSiteId;
+}
+
+async function getListId(listName) {
+  const siteId = await getSiteId();
+  if (!siteId) return null;
+  const data = await graphGet('/sites/' + siteId + '/lists/' + listName);
+  return data ? data.id : null;
+}
+
+async function ensureList(listName, columns) {
+  const siteId = await getSiteId();
+  if (!siteId) return null;
+  // Probeer bestaande lijst op te halen
+  let listId = await getListId(listName);
+  if (!listId) {
+    // Maak lijst aan
+    const newList = await graphPost('/sites/' + siteId + '/lists', {
+      displayName: listName,
+      list: { template: 'genericList' }
+    });
+    if (!newList) return null;
+    listId = newList.id;
+    // Voeg kolom toe voor JSON data
+    await graphPost('/sites/' + siteId + '/lists/' + listId + '/columns', {
+      name: 'JsonData', text: { allowMultipleLines: true, maxLength: 0 }
+    });
+    await graphPost('/sites/' + siteId + '/lists/' + listId + '/columns', {
+      name: 'RecordId', text: {}
+    });
+  }
+  return listId;
+}
+
+// ── SHAREPOINT SYNC ───────────────────────────────────────────────────────
+let spListIds = {};
+
+async function initSharePoint() {
+  toonSyncStatus('Verbinden met SharePoint…', 'oranje');
+  const token = await getToken();
+  if (!token) {
+    toonSyncStatus('Offline — data lokaal opgeslagen', 'grijs');
+    return false;
+  }
+  const siteId = await getSiteId();
+  if (!siteId) {
+    toonSyncStatus('SharePoint site niet gevonden — check configuratie', 'rood');
+    return false;
+  }
+  // Zorg dat alle lijsten bestaan
+  for (const [key, listName] of Object.entries(SP_LISTS)) {
+    spListIds[key] = await ensureList(listName);
+  }
+  // Laad data van SharePoint
+  await laadVanSharePoint();
+  toonSyncStatus('● Live gesynchroniseerd', 'groen');
+  // Automatisch elke 30 seconden synchroniseren
+  if (syncInterval) clearInterval(syncInterval);
+  syncInterval = setInterval(async () => {
+    await laadVanSharePoint();
+  }, 30000);
+  return true;
+}
+
+async function laadVanSharePoint() {
+  const siteId = await getSiteId();
+  if (!siteId) return;
+  let gewijzigd = false;
+  for (const [key, listName] of Object.entries(SP_LISTS)) {
+    const listId = spListIds[key];
+    if (!listId) continue;
+    const data = await graphGet('/sites/' + siteId + '/lists/' + listId + '/items?expand=fields&$top=5000');
+    if (!data || !data.value) continue;
+    const items = data.value
+      .filter(item => item.fields.JsonData)
+      .map(item => {
+        try { return { ...JSON.parse(item.fields.JsonData), _spId: item.id }; }
+        catch(e) { return null; }
+      }).filter(Boolean);
+    if (JSON.stringify(state[key]) !== JSON.stringify(items)) {
+      state[key] = items;
+      gewijzigd = true;
+    }
+  }
+  if (gewijzigd) {
+    localStorage.setItem('overdracht_data', JSON.stringify(state));
+    if (huidigGebruiker) { renderSidebar(); renderMain(); }
+  }
+}
+
+async function slaOpNaarSharePoint(key, records) {
+  const siteId = await getSiteId();
+  const listId = spListIds[key];
+  if (!siteId || !listId) return;
+  // Haal bestaande items op
+  const existing = await graphGet('/sites/' + siteId + '/lists/' + listId + '/items?expand=fields&$top=5000');
+  const existingMap = {};
+  if (existing && existing.value) {
+    existing.value.forEach(item => {
+      if (item.fields.RecordId) existingMap[item.fields.RecordId] = item.id;
+    });
+  }
+  // Update of maak aan
+  for (const record of records) {
+    const json = JSON.stringify(record);
+    const recordId = record.id || record.naam || String(Math.random());
+    if (existingMap[recordId]) {
+      await graphPatch('/sites/' + siteId + '/lists/' + listId + '/items/' + existingMap[recordId] + '/fields', {
+        JsonData: json, RecordId: recordId
+      });
+      delete existingMap[recordId];
+    } else {
+      await graphPost('/sites/' + siteId + '/lists/' + listId + '/items', {
+        fields: { JsonData: json, RecordId: recordId }
+      });
+    }
+  }
+  // Verwijder items die niet meer bestaan
+  for (const spId of Object.values(existingMap)) {
+    await graphDelete('/sites/' + siteId + '/lists/' + listId + '/items/' + spId);
+  }
+}
+
+function toonSyncStatus(tekst, kleur) {
+  const el = document.getElementById('syncStatusBar');
+  if (!el) return;
+  const kleuren = { groen: '#2ecc71', oranje: '#f0a500', rood: '#e84040', grijs: '#888' };
+  el.style.color = kleuren[kleur] || '#888';
+  el.textContent = tekst;
+  el.style.display = 'flex';
+}
+
 const ALGEMEEN_WACHTWOORD = 'ASOEMG2026';
 let SUPERBEHEERDER_NAAM = 'Robin van Braam'; // Naam van de eindverantwoordelijke - wordt bijgehouden
 
@@ -935,7 +1270,9 @@ function load() {
     if (raw) {
       const parsed = JSON.parse(raw);
       state.collega         = Array.isArray(parsed.collega)         ? parsed.collega         : [];
-      state.projectmanagers = Array.isArray(parsed.projectmanagers) ? parsed.projectmanagers : [];
+      // Zorg dat projectmanagers altijd objecten zijn {naam, inDienst}
+      const rawPM = Array.isArray(parsed.projectmanagers) ? parsed.projectmanagers : [];
+      state.projectmanagers = rawPM.map(p => typeof p === 'string' ? {naam: p, inDienst: true} : p);
       state.overdrachten    = Array.isArray(parsed.overdrachten)    ? parsed.overdrachten    : [];
       state.opleidingen     = Array.isArray(parsed.opleidingen)     ? parsed.opleidingen     : [];
       state.opleidingNamen  = Array.isArray(parsed.opleidingNamen)  ? parsed.opleidingNamen  : [];
@@ -970,6 +1307,24 @@ function save() {
       opleidingNamen:  state.opleidingNamen,
     };
     localStorage.setItem('overdracht_data', JSON.stringify(data));
+    // Sla ook op naar SharePoint als verbonden
+    if (spToken && spSiteId && isOnline) {
+      toonSyncStatus('Opslaan…', 'oranje');
+      Promise.all([
+        slaOpNaarSharePoint('collega', state.collega),
+        slaOpNaarSharePoint('overdrachten', state.overdrachten),
+        slaOpNaarSharePoint('projectmanagers', state.projectmanagers.map((p,i) => ({id:'pm'+i, naam:p.naam, inDienst:p.inDienst}))),
+        slaOpNaarSharePoint('opleidingen', state.opleidingen),
+        slaOpNaarSharePoint('opleidingNamen', state.opleidingNamen.map((n,i) => ({id:'on'+i, naam:n}))),
+        slaOpNaarSharePoint('gebruikers', state.gebruikers),
+      ]).then(() => toonSyncStatus('● Live gesynchroniseerd', 'groen'))
+        .catch(() => toonSyncStatus('Sync fout — lokaal opgeslagen', 'rood'));
+    } else if (!isOnline) {
+      // Offline: voeg toe aan wachtrij
+      offlineWachtrij.push(Date.now());
+      localStorage.setItem('offlineWachtrij', JSON.stringify(offlineWachtrij));
+      toonSyncStatus('Offline — ' + offlineWachtrij.length + ' wijziging(en) wachten op sync', 'grijs');
+    }
   } catch(e) {
     console.warn('Kon data niet opslaan:', e);
     alert('Let op: data kon niet worden opgeslagen. Controleer je browserinstellingen.');
@@ -1007,10 +1362,13 @@ function login() {
     document.getElementById('btnAdminMode').classList.remove('active');
     document.getElementById('btnAdminMode').textContent = 'Admin Mode';
   }
+  resetAutoLogoutTimer();
   renderSidebar(); renderMain();
 }
 
 function logout() {
+  if (autoLogoutTimer) clearTimeout(autoLogoutTimer);
+  if (autoLogoutCountdownTimer) clearInterval(autoLogoutCountdownTimer);
   huidigGebruiker = null;
   actieveCollegaId = null;
   actieveOpleidingId = null;
@@ -1060,6 +1418,325 @@ function logout() {
 }
 
 document.getElementById('loginWachtwoord').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+// ── AUTO LOGOUT ───────────────────────────────────────────────────────────
+let autoLogoutTimer = null;
+let autoLogoutSeconds = 0;
+let autoLogoutCountdownTimer = null;
+let restSeconden = 0;
+
+function slaAutoLogoutOp(waarde) {
+  autoLogoutSeconds = parseInt(waarde);
+  localStorage.setItem('autoLogoutSeconds', waarde);
+  resetAutoLogoutTimer();
+  updateAutoLogoutUI();
+}
+
+function updateAutoLogoutUI() {
+  // Update radio buttons
+  document.querySelectorAll('input[name="autoLogout"]').forEach(radio => {
+    radio.checked = parseInt(radio.value) === autoLogoutSeconds;
+  });
+}
+
+function resetAutoLogoutTimer() {
+  if (autoLogoutTimer) clearTimeout(autoLogoutTimer);
+  if (autoLogoutCountdownTimer) clearInterval(autoLogoutCountdownTimer);
+  const el = document.getElementById('autoLogoutCountdown');
+  if (el) el.style.display = 'none';
+  if (!huidigGebruiker || autoLogoutSeconds === 0) return;
+  restSeconden = autoLogoutSeconds;
+  autoLogoutTimer = setTimeout(() => {
+    logout();
+    alert('Je bent automatisch uitgelogd vanwege inactiviteit.');
+  }, autoLogoutSeconds * 1000);
+  // Countdown tonen in modal als die open is
+  autoLogoutCountdownTimer = setInterval(() => {
+    restSeconden--;
+    const el2 = document.getElementById('autoLogoutCountdown');
+    if (el2 && el2.style.display !== 'none') {
+      el2.textContent = 'Uitloggen over ' + restSeconden + ' seconde' + (restSeconden !== 1 ? 'n' : '') + ' bij inactiviteit.';
+    }
+  }, 1000);
+}
+
+// ── DROPDOWN BEHEER ───────────────────────────────────────────────────────
+let huidigeDdLijst = '';
+
+function laadDdLijst() {
+  huidigeDdLijst = document.getElementById('ddListKeuze').value;
+  document.getElementById('ddFout').style.display = 'none';
+  document.getElementById('ddNieuwItem').value = '';
+  if (!huidigeDdLijst) {
+    document.getElementById('ddLijstContainer').style.display = 'none';
+    return;
+  }
+  document.getElementById('ddLijstContainer').style.display = 'block';
+  ddRenderLijst();
+}
+
+function ddGetNamen() {
+  if (huidigeDdLijst === 'projectmanagers') {
+    return state.projectmanagers.map(p => typeof p === 'string' ? p : p.naam);
+  }
+  if (huidigeDdLijst === 'opleidingNamen') {
+    return (state.opleidingNamen || []).slice();
+  }
+  return [];
+}
+
+function ddIsGebruikt(naam) {
+  if (huidigeDdLijst === 'projectmanagers') return state.overdrachten.some(o => o.pm === naam);
+  if (huidigeDdLijst === 'opleidingNamen') return state.opleidingen.some(o => o.naam === naam);
+  return false;
+}
+
+function ddRenderLijst() {
+  const container = document.getElementById('ddItems');
+  container.innerHTML = '';
+  const namen = ddGetNamen();
+  if (namen.length === 0) {
+    container.innerHTML = '<div style="padding:14px;color:var(--text-muted);font-size:0.85rem;text-align:center;">Nog geen items.</div>';
+    return;
+  }
+  for (var i = 0; i < namen.length; i++) {
+    var naam = namen[i];
+    var ispm = huidigeDdLijst === 'projectmanagers';
+    var pmObj = ispm ? state.projectmanagers[i] : null;
+    var inDienst = pmObj ? pmObj.inDienst !== false : true;
+    var gebruikt = ddIsGebruikt(naam);
+    var lijst = huidigeDdLijst;
+
+    var rij = document.createElement('div');
+    rij.style.cssText = 'display:flex;align-items:center;gap:6px;padding:9px 12px;border-bottom:1px solid var(--border);';
+
+    if (ispm) {
+      var dienstBtn = document.createElement('button');
+      dienstBtn.textContent = inDienst ? '✓ In dienst' : '✕ Uit dienst';
+      dienstBtn.style.cssText = 'background:' + (inDienst ? '#2ecc71' : '#e84040') + ';border:none;color:#fff;font-size:0.65rem;font-weight:700;padding:3px 8px;cursor:pointer;white-space:nowrap;';
+      dienstBtn['data-i'] = i;
+      dienstBtn.onclick = (function(ii) { return function() { ddToggleDienst(ii); }; })(i);
+      rij.appendChild(dienstBtn);
+    }
+
+    var naamSpan = document.createElement('span');
+    naamSpan.textContent = naam;
+    naamSpan.style.cssText = 'flex:1;font-size:0.875rem;' + (!inDienst ? 'color:var(--text-muted);text-decoration:line-through;' : '');
+    rij.appendChild(naamSpan);
+
+    var inp = document.createElement('input');
+    inp.className = 'form-input';
+    inp.value = naam;
+    inp.style.cssText = 'flex:1;display:none;padding:5px 10px;font-size:0.85rem;';
+    rij.appendChild(inp);
+
+    var btnBew = document.createElement('button');
+    btnBew.className = 'btn-secondary';
+    btnBew.textContent = '✏';
+    btnBew.style.cssText = 'font-size:0.65rem;padding:3px 8px;';
+    btnBew.onclick = (function(span, input, bBew, bOpl, bAnn) {
+      return function() {
+        span.style.display = 'none'; input.style.display = ''; input.focus();
+        bBew.style.display = 'none'; bOpl.style.display = ''; bAnn.style.display = '';
+      };
+    });
+    rij.appendChild(btnBew);
+
+    var btnOpl = document.createElement('button');
+    btnOpl.className = 'btn-primary';
+    btnOpl.textContent = 'Opslaan';
+    btnOpl.style.cssText = 'display:none;font-size:0.65rem;padding:3px 8px;';
+    rij.appendChild(btnOpl);
+
+    var btnAnn = document.createElement('button');
+    btnAnn.className = 'btn-secondary';
+    btnAnn.textContent = '✕';
+    btnAnn.style.cssText = 'display:none;font-size:0.65rem;padding:3px 8px;';
+    rij.appendChild(btnAnn);
+
+    // Stel onclick in na aanmaken zodat alle referenties beschikbaar zijn
+    btnBew.onclick = (function(span, input, bBew, bOpl, bAnn) {
+      return function() {
+        span.style.display = 'none'; input.style.display = ''; input.focus();
+        bBew.style.display = 'none'; bOpl.style.display = ''; bAnn.style.display = '';
+      };
+    })(naamSpan, inp, btnBew, btnOpl, btnAnn);
+
+    btnAnn.onclick = (function(span, input, bBew, bOpl, bAnn) {
+      return function() {
+        span.style.display = ''; input.style.display = 'none';
+        bBew.style.display = ''; bOpl.style.display = 'none'; bAnn.style.display = 'none';
+      };
+    })(naamSpan, inp, btnBew, btnOpl, btnAnn);
+
+    btnOpl.onclick = (function(ii, input) {
+      return function() { ddSlaOpNieuweNaam(ii, input.value.trim()); };
+    })(i, inp);
+
+    if (gebruikt) {
+      var inGebruik = document.createElement('span');
+      inGebruik.textContent = 'In gebruik';
+      inGebruik.style.cssText = 'font-size:0.68rem;color:var(--text-muted);font-style:italic;padding:0 4px;';
+      rij.appendChild(inGebruik);
+    } else {
+      var btnDel = document.createElement('button');
+      btnDel.className = 'btn-danger';
+      btnDel.textContent = 'Verwijder';
+      btnDel.style.cssText = 'font-size:0.72rem;padding:3px 8px;';
+      btnDel.onclick = (function(ii, n, l, rijEl) {
+        return function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          // Vervang knop door bevestigingsknoppen
+          var span = rijEl.querySelector('span') || rijEl.querySelector('div');
+          btnDel.style.display = 'none';
+          var bevestig = document.createElement('span');
+          bevestig.style.cssText = 'display:flex;gap:4px;align-items:center;';
+          bevestig.innerHTML = '<span style="font-size:0.75rem;color:var(--danger);">Zeker?</span>';
+          var btnJa = document.createElement('button');
+          btnJa.textContent = 'Ja';
+          btnJa.className = 'btn-danger';
+          btnJa.style.cssText = 'font-size:0.72rem;padding:3px 8px;';
+          btnJa.onclick = function(ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (l === 'projectmanagers') state.projectmanagers.splice(ii, 1);
+            else if (l === 'opleidingNamen') state.opleidingNamen.splice(ii, 1);
+            save();
+            populatePMSelect('');
+            populateOpleidingNamenSelect('');
+            rijEl.remove();
+          };
+          var btnNee = document.createElement('button');
+          btnNee.textContent = 'Nee';
+          btnNee.className = 'btn-secondary';
+          btnNee.style.cssText = 'font-size:0.72rem;padding:3px 8px;';
+          btnNee.onclick = function(ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            bevestig.remove();
+            btnDel.style.display = '';
+          };
+          bevestig.appendChild(btnJa);
+          bevestig.appendChild(btnNee);
+          rijEl.appendChild(bevestig);
+        };
+      })(i, naam, lijst, rij);
+      rij.appendChild(btnDel);
+    }
+
+    container.appendChild(rij);
+  }
+}
+
+function ddSlaOpNieuweNaam(i, nieuweNaam) {
+  if (!nieuweNaam) { alert('Vul een naam in.'); return; }
+  const namen = ddGetNamen();
+  if (namen.some(function(v, idx) { return idx !== i && v.toLowerCase() === nieuweNaam.toLowerCase(); })) {
+    alert('Dit item bestaat al.'); return;
+  }
+  const oudeNaam = namen[i];
+  if (huidigeDdLijst === 'projectmanagers') {
+    if (typeof state.projectmanagers[i] === 'string') state.projectmanagers[i] = {naam: nieuweNaam, inDienst: true};
+    else state.projectmanagers[i].naam = nieuweNaam;
+    state.overdrachten.forEach(function(o) { if (o.pm === oudeNaam) o.pm = nieuweNaam; });
+  } else if (huidigeDdLijst === 'opleidingNamen') {
+    state.opleidingNamen[i] = nieuweNaam;
+    state.opleidingen.forEach(function(o) { if (o.naam === oudeNaam) o.naam = nieuweNaam; });
+  }
+  save();
+  populatePMSelect('');
+  populateOpleidingNamenSelect('');
+  renderMain();
+  ddRenderLijst();
+}
+
+function ddVerwijderItem(i, naam) {
+  if (huidigeDdLijst === 'projectmanagers' && state.overdrachten.some(function(o) { return o.pm === naam; })) {
+    alert('"' + naam + '" kan niet worden verwijderd — al gebruikt in een overdracht.'); return;
+  }
+  if (huidigeDdLijst === 'opleidingNamen' && state.opleidingen.some(function(o) { return o.naam === naam; })) {
+    alert('"' + naam + '" kan niet worden verwijderd — al gebruikt in een opleiding.'); return;
+  }
+  if (!confirm('"' + naam + '" verwijderen uit de lijst?')) return;
+  if (huidigeDdLijst === 'projectmanagers') state.projectmanagers.splice(i, 1);
+  else if (huidigeDdLijst === 'opleidingNamen') state.opleidingNamen.splice(i, 1);
+  save();
+  populatePMSelect('');
+  populateOpleidingNamenSelect('');
+  ddRenderLijst();
+}
+
+function ddToggleDienst(i) {
+  const pm = state.projectmanagers[i];
+  if (!pm) return;
+  if (typeof pm === 'string') state.projectmanagers[i] = {naam: pm, inDienst: false};
+  else pm.inDienst = pm.inDienst === false ? true : false;
+  save();
+  populatePMSelect('');
+  ddRenderLijst();
+}
+
+function ddVoegToe() {
+  const naam = document.getElementById('ddNieuwItem').value.trim();
+  const fout = document.getElementById('ddFout');
+  if (!naam) { fout.textContent = '⚠ Vul een naam in.'; fout.style.display = 'block'; return; }
+  const namen = ddGetNamen();
+  if (namen.some(function(v) { return v.toLowerCase() === naam.toLowerCase(); })) {
+    fout.textContent = '⚠ Dit item bestaat al.'; fout.style.display = 'block'; return;
+  }
+  fout.style.display = 'none';
+  if (huidigeDdLijst === 'projectmanagers') state.projectmanagers.push({naam: naam, inDienst: true});
+  else if (huidigeDdLijst === 'opleidingNamen') { if (!state.opleidingNamen) state.opleidingNamen = []; state.opleidingNamen.push(naam); }
+  save();
+  document.getElementById('ddNieuwItem').value = '';
+  populatePMSelect('');
+  populateOpleidingNamenSelect('');
+  ddRenderLijst();
+}
+
+function switchInstTab(tab) {
+  const panels = {inactiviteit: 'instPanelInactiviteit', dropdowns: 'instPanelDropdowns'};
+  const tabs   = {inactiviteit: 'instTab1',              dropdowns: 'instTab2'};
+  Object.keys(panels).forEach(function(t) {
+    const panel = document.getElementById(panels[t]);
+    const btn   = document.getElementById(tabs[t]);
+    if (panel) panel.style.display = t === tab ? 'block' : 'none';
+    if (btn) {
+      btn.style.color            = t === tab ? 'var(--accent)' : 'var(--text-muted)';
+      btn.style.borderBottomColor= t === tab ? 'var(--accent)' : 'transparent';
+    }
+  });
+  if (tab === 'dropdowns') {
+    document.getElementById('ddListKeuze').value = '';
+    document.getElementById('ddLijstContainer').style.display = 'none';
+    document.getElementById('ddFout').style.display = 'none';
+  }
+}
+
+function openInstellingen() {
+  // Toon/verberg drop-downs tab op basis van admin rechten
+  const tab2 = document.getElementById('instTab2');
+  if (tab2) tab2.style.display = huidigGebruiker && huidigGebruiker.admin ? '' : 'none';
+  // Reset naar inactiviteit tab
+  switchInstTab('inactiviteit');
+  updateAutoLogoutUI();
+  const el = document.getElementById('autoLogoutCountdown');
+  if (el) {
+    if (autoLogoutSeconds > 0 && huidigGebruiker) {
+      el.style.display = 'block';
+      el.textContent = 'Uitloggen over ' + restSeconden + ' seconde' + (restSeconden !== 1 ? 'n' : '') + ' bij inactiviteit.';
+    } else {
+      el.style.display = 'none';
+    }
+  }
+  document.getElementById('modalInstellingen').classList.remove('hidden');
+}
+
+// Reset timer bij elke gebruikersinteractie
+['click','keydown','mousemove','touchstart','scroll'].forEach(event => {
+  document.addEventListener(event, () => { if (huidigGebruiker && autoLogoutSeconds > 0) resetAutoLogoutTimer(); }, { passive: true });
+});
 
 function openAdminMode() {
   if (huidigGebruiker && huidigGebruiker.admin) {
@@ -1743,7 +2420,12 @@ function savePM() {
 
 function populatePMSelect(selected) {
   document.getElementById('fPM').innerHTML = '<option value="">— Kies projectmanager —</option>' +
-    state.projectmanagers.map(pm => '<option value="' + escHtml(pm) + '"' + (pm===selected?' selected':'') + '>' + escHtml(pm) + '</option>').join('');
+    state.projectmanagers
+      .filter(pm => pm.inDienst !== false)
+      .map(pm => {
+        const naam = typeof pm === 'string' ? pm : pm.naam;
+        return '<option value="' + escHtml(naam) + '"' + (naam===selected?' selected':'') + '>' + escHtml(naam) + '</option>';
+      }).join('');
 }
 
 function populateAuteurSelect(selected) {
@@ -2282,9 +2964,16 @@ function resetAdminBijReload() {
 }
 
 load();
+autoLogoutSeconds = parseInt(localStorage.getItem('autoLogoutSeconds') || '0');
+// Herstel offline wachtrij
+try { offlineWachtrij = JSON.parse(localStorage.getItem('offlineWachtrij') || '[]'); } catch(e) { offlineWachtrij = []; }
 resetAdminBijReload();
 initTheme();
 initLoginScherm();
+// Start SharePoint synchronisatie (werkt alleen als configuratie is ingevuld)
+if (SP_CONFIG.tenantId !== 'VOEL_HIER_JE_TENANT_ID_IN') {
+  initSharePoint();
+}
 </script>
 </body>
 </html>
