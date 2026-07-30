@@ -531,7 +531,7 @@
       <button class="btn-gebruikers hidden" id="btnGebruikersBeheer" onclick="openGebruikersBeheer()">Gebruikers</button>
       <button class="btn-theme" id="btnTheme" onclick="toggleTheme()" title="Wissel weergave">🌙</button>
       <button class="btn-logout" onclick="exportData()" title="Exporteer alle data als JSON bestand" style="margin-right:4px;">↓ Export</button>
-      <label class="btn-logout" title="Importeer data uit JSON bestand" style="margin-right:4px;cursor:pointer;">↑ Import<input type="file" accept=".json" onchange="importData(event)" style="display:none;" /></label>
+      <button class="btn-logout" title="Importeer data uit JSON bestand" onclick="openImportModal()" style="margin-right:4px;">↑ Import</button>
       <button class="btn-logout" onclick="openInstellingen()" style="margin-right:4px;font-size:1.1rem;padding:0 10px;">⚙</button>
       <button class="btn-logout" onclick="logout()">Uitloggen</button>
     </div>
@@ -861,25 +861,56 @@
   </div>
 </div>
 
+<!-- MODAL: Import via header knop -->
+<div class="modal-backdrop hidden" id="modalImportKnop">
+  <div class="modal" style="max-width:460px;text-align:center;">
+    <div style="font-size:2rem;margin-bottom:12px;">📥</div>
+    <div class="modal-title" style="margin-bottom:8px;">Data importeren</div>
+    <p style="font-size:0.875rem;color:var(--text-muted);line-height:1.7;margin-bottom:20px;">
+      Sleep het exportbestand hierin, of klik om te bladeren. Je vindt het bestand in de gedeelde SharePoint map.
+    </p>
+    <div id="importSleepZone2" style="border:2px dashed var(--border);padding:28px 20px;margin-bottom:14px;cursor:pointer;transition:all 0.15s;"
+      ondragover="importDragOver2(event)"
+      ondragleave="importDragLeave2(event)"
+      ondrop="importDrop2(event)"
+      onclick="document.getElementById('importBestandKiezer2').click()">
+      <div id="importSleepTekst2" style="color:var(--text-muted);font-size:0.875rem;pointer-events:none;">
+        <div style="font-size:1.8rem;margin-bottom:8px;">📂</div>
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px;">Sleep bestand hierheen</div>
+        <div style="font-size:0.78rem;">of klik om een bestand te kiezen</div>
+      </div>
+      <input type="file" id="importBestandKiezer2" accept=".json" onchange="importDataVanKnop(event)" style="display:none;" />
+    </div>
+    <button class="btn-secondary" onclick="closeModal('modalImportKnop')" style="width:100%;justify-content:center;font-size:0.85rem;padding:11px 20px;">
+      Annuleren
+    </button>
+  </div>
+</div>
+
 <!-- MODAL: Import melding bij inloggen -->
 <div class="modal-backdrop hidden" id="modalImportMelding">
-  <div class="modal" style="max-width:440px;text-align:center;">
+  <div class="modal" style="max-width:460px;text-align:center;">
     <div style="font-size:2rem;margin-bottom:12px;">📥</div>
     <div class="modal-title" style="margin-bottom:8px;">Wil je eerst importeren?</div>
     <p style="font-size:0.875rem;color:var(--text-muted);line-height:1.7;margin-bottom:20px;">
-      Om te werken met de meest recente data van je collega's, is het aan te raden om eerst het laatste exportbestand te importeren vanuit de gedeelde SharePoint map.
+      Sleep het laatste exportbestand hierin, of klik om te bladeren. Je vindt het bestand in de gedeelde SharePoint map.
     </p>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <label style="cursor:pointer;">
-        <div class="btn-primary" style="width:100%;justify-content:center;font-size:0.85rem;padding:12px 20px;box-sizing:border-box;">
-          ↑ Ja, importeer nu
-        </div>
-        <input type="file" accept=".json" onchange="importDataVanMelding(event)" style="display:none;" />
-      </label>
-      <button class="btn-secondary" onclick="closeModal('modalImportMelding')" style="width:100%;justify-content:center;font-size:0.85rem;padding:11px 20px;">
-        Nee, ga door zonder importeren
-      </button>
+    <!-- Sleep zone -->
+    <div id="importSleepZone" style="border:2px dashed var(--border);padding:28px 20px;margin-bottom:14px;cursor:pointer;transition:all 0.15s;position:relative;"
+      ondragover="importDragOver(event)"
+      ondragleave="importDragLeave(event)"
+      ondrop="importDrop(event)"
+      onclick="document.getElementById('importBestandKiezer').click()">
+      <div id="importSleepTekst" style="color:var(--text-muted);font-size:0.875rem;pointer-events:none;">
+        <div style="font-size:1.8rem;margin-bottom:8px;">📂</div>
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px;">Sleep bestand hierheen</div>
+        <div style="font-size:0.78rem;">of klik om een bestand te kiezen</div>
+      </div>
+      <input type="file" id="importBestandKiezer" accept=".json" onchange="importDataVanMelding(event)" style="display:none;" />
     </div>
+    <button class="btn-secondary" onclick="closeModal('modalImportMelding')" style="width:100%;justify-content:center;font-size:0.85rem;padding:11px 20px;">
+      Nee, ga door zonder importeren
+    </button>
   </div>
 </div>
 
@@ -1829,6 +1860,85 @@ function resetNaarStandaard() {
 
 function toonImportMelding() {
   document.getElementById('modalImportMelding').classList.remove('hidden');
+}
+
+function openImportModal() {
+  // Reset de sleep zone
+  importDragLeave2({});
+  document.getElementById('importBestandKiezer2').value = '';
+  document.getElementById('modalImportKnop').classList.remove('hidden');
+}
+
+function importDataVanKnop(event) {
+  closeModal('modalImportKnop');
+  importData(event);
+}
+
+function importDragOver2(event) {
+  event.preventDefault();
+  const zone = document.getElementById('importSleepZone2');
+  zone.style.borderColor = 'var(--accent)';
+  zone.style.background  = 'rgba(232,80,10,0.06)';
+  document.getElementById('importSleepTekst2').innerHTML =
+    '<div style="font-size:1.8rem;margin-bottom:8px;">📥</div>' +
+    '<div style="font-weight:600;color:var(--accent);margin-bottom:4px;">Loslaten om te importeren</div>';
+}
+
+function importDragLeave2(event) {
+  const zone = document.getElementById('importSleepZone2');
+  if (!zone) return;
+  zone.style.borderColor = 'var(--border)';
+  zone.style.background  = '';
+  document.getElementById('importSleepTekst2').innerHTML =
+    '<div style="font-size:1.8rem;margin-bottom:8px;">📂</div>' +
+    '<div style="font-weight:600;color:var(--text);margin-bottom:4px;">Sleep bestand hierheen</div>' +
+    '<div style="font-size:0.78rem;">of klik om een bestand te kiezen</div>';
+}
+
+function importDrop2(event) {
+  event.preventDefault();
+  importDragLeave2(event);
+  const file = event.dataTransfer.files[0];
+  if (!file) return;
+  if (!file.name.endsWith('.json')) { alert('Gebruik alleen een .json exportbestand.'); return; }
+  closeModal('modalImportKnop');
+  const nep = { target: { files: [file], value: '' } };
+  importData(nep);
+}
+
+function importDragOver(event) {
+  event.preventDefault();
+  const zone = document.getElementById('importSleepZone');
+  zone.style.borderColor = 'var(--accent)';
+  zone.style.background  = 'rgba(232,80,10,0.06)';
+  document.getElementById('importSleepTekst').innerHTML =
+    '<div style="font-size:1.8rem;margin-bottom:8px;">📥</div>' +
+    '<div style="font-weight:600;color:var(--accent);margin-bottom:4px;">Loslaten om te importeren</div>';
+}
+
+function importDragLeave(event) {
+  const zone = document.getElementById('importSleepZone');
+  zone.style.borderColor = 'var(--border)';
+  zone.style.background  = '';
+  document.getElementById('importSleepTekst').innerHTML =
+    '<div style="font-size:1.8rem;margin-bottom:8px;">📂</div>' +
+    '<div style="font-weight:600;color:var(--text);margin-bottom:4px;">Sleep bestand hierheen</div>' +
+    '<div style="font-size:0.78rem;">of klik om een bestand te kiezen</div>';
+}
+
+function importDrop(event) {
+  event.preventDefault();
+  importDragLeave(event);
+  const file = event.dataTransfer.files[0];
+  if (!file) return;
+  if (!file.name.endsWith('.json')) {
+    alert('Gebruik alleen een .json exportbestand.');
+    return;
+  }
+  closeModal('modalImportMelding');
+  // Verwerk het bestand via een nep event object
+  const nep = { target: { files: [file], value: '' } };
+  importData(nep);
 }
 
 function importDataVanMelding(event) {
